@@ -11,6 +11,10 @@ chat software.
 - [gumble_openal](https://github.com/layeh/gumble/tree/master/gumble_openal)
 - [termbox-go](https://github.com/nsf/termbox-go)
 
+## License
+
+MIT
+
 ## Author
 
 Tim Cooper (<tim.cooper@layeh.com>)
