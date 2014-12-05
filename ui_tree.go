@@ -67,7 +67,7 @@ func (b *Barnard) TreeItem(item uiterm.TreeItem) []uiterm.TreeItem {
 	}
 
 	channels := []uiterm.TreeItem{}
-	for _, subchannel := range treeItem.Channel.Children() {
+	for _, subchannel := range treeItem.Channel.Channels() {
 		channels = append(channels, TreeItem{
 			Channel: subchannel,
 		})
