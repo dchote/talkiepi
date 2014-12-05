@@ -32,14 +32,14 @@ func main() {
 		Listener: &b,
 	}
 	if *insecure {
-		b.Config.TlsConfig.InsecureSkipVerify = true
+		b.Config.TLSConfig.InsecureSkipVerify = true
 	}
 	if *certificate != "" {
 		if cert, err := tls.LoadX509KeyPair(*certificate, *certificate); err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", err)
 			os.Exit(1)
 		} else {
-			b.Config.TlsConfig.Certificates = []tls.Certificate{cert}
+			b.Config.TLSConfig.Certificates = []tls.Certificate{cert}
 		}
 	}
 
