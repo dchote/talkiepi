@@ -25,6 +25,7 @@ func (t *Textbox) uiInitialize(ui *Ui) {
 
 func (t *Textbox) uiSetActive(active bool) {
 	t.active = active
+	t.uiDraw()
 }
 
 func (t *Textbox) uiSetBounds(x0, y0, x1, y1 int) {
@@ -32,6 +33,7 @@ func (t *Textbox) uiSetBounds(x0, y0, x1, y1 int) {
 	t.y0 = y0
 	t.x1 = x1
 	t.y1 = y1
+	t.uiDraw()
 }
 
 func (t *Textbox) uiDraw() {

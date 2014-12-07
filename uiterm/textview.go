@@ -31,18 +31,21 @@ func (t *Textview) uiSetBounds(x0, y0, x1, y1 int) {
 	t.x1 = x1
 	t.y1 = y1
 	t.updateParsedLines()
+	t.uiDraw()
 }
 
 func (t *Textview) ScrollUp() {
 	if newLine := t.CurrentLine + 1; newLine < len(t.parsedLines) {
 		t.CurrentLine = newLine
 	}
+	t.uiDraw()
 }
 
 func (t *Textview) ScrollDown() {
 	if newLine := t.CurrentLine - 1; newLine >= 0 {
 		t.CurrentLine = newLine
 	}
+	t.uiDraw()
 }
 
 func (t *Textview) ScrollTop() {
@@ -51,10 +54,12 @@ func (t *Textview) ScrollTop() {
 	} else {
 		t.CurrentLine = 0
 	}
+	t.uiDraw()
 }
 
 func (t *Textview) ScrollBottom() {
 	t.CurrentLine = 0
+	t.uiDraw()
 }
 
 func (t *Textview) updateParsedLines() {
@@ -94,12 +99,14 @@ func (t *Textview) updateParsedLines() {
 func (t *Textview) AddLine(line string) {
 	t.Lines = append(t.Lines, line)
 	t.updateParsedLines()
+	t.uiDraw()
 }
 
 func (t *Textview) Clear() {
 	t.Lines = nil
 	t.CurrentLine = 0
 	t.parsedLines = nil
+	t.uiDraw()
 }
 
 func (t *Textview) uiDraw() {

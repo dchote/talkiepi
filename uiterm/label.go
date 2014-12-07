@@ -27,6 +27,7 @@ func (l *Label) uiSetBounds(x0, y0, x1, y1 int) {
 	l.y0 = y0
 	l.x1 = x1
 	l.y1 = y1
+	l.uiDraw()
 }
 
 func (l *Label) uiDraw() {
