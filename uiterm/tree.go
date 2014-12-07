@@ -48,7 +48,11 @@ func (t *Tree) uiInitialize(ui *Ui) {
 	t.ui = ui
 }
 
-func (t *Tree) setBounds(x0, y0, x1, y1 int) {
+func (t *Tree) uiSetActive(active bool) {
+	t.active = active
+}
+
+func (t *Tree) uiSetBounds(x0, y0, x1, y1 int) {
 	t.x0 = x0
 	t.y0 = y0
 	t.x1 = x1
@@ -91,7 +95,7 @@ func (t *Tree) rebuild_rec(parent TreeItem, level int) []renderedTreeItem {
 	return lines
 }
 
-func (t *Tree) draw() {
+func (t *Tree) uiDraw() {
 	if t.lines == nil {
 		t.Rebuild()
 	}
@@ -124,11 +128,7 @@ func (t *Tree) draw() {
 	}
 }
 
-func (t *Tree) setActive(active bool) {
-	t.active = active
-}
-
-func (t *Tree) keyEvent(mod Modifier, key Key) {
+func (t *Tree) uiKeyEvent(mod Modifier, key Key) {
 	switch key {
 	case KeyArrowUp:
 		t.activeLine = bounded(t.activeLine-1, 0, len(t.lines)-1)
@@ -142,5 +142,5 @@ func (t *Tree) keyEvent(mod Modifier, key Key) {
 	t.ui.Refresh()
 }
 
-func (t *Tree) characterEvent(ch rune) {
+func (t *Tree) uiCharacterEvent(ch rune) {
 }

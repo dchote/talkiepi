@@ -23,18 +23,18 @@ func (t *Textbox) uiInitialize(ui *Ui) {
 	t.ui = ui
 }
 
-func (t *Textbox) setBounds(x0, y0, x1, y1 int) {
+func (t *Textbox) uiSetActive(active bool) {
+	t.active = active
+}
+
+func (t *Textbox) uiSetBounds(x0, y0, x1, y1 int) {
 	t.x0 = x0
 	t.y0 = y0
 	t.x1 = x1
 	t.y1 = y1
 }
 
-func (t *Textbox) setActive(active bool) {
-	t.active = active
-}
-
-func (t *Textbox) draw() {
+func (t *Textbox) uiDraw() {
 	var setCursor = false
 	reader := strings.NewReader(t.Text)
 	for y := t.y0; y < t.y1; y++ {
@@ -54,7 +54,7 @@ func (t *Textbox) draw() {
 	}
 }
 
-func (t *Textbox) keyEvent(mod Modifier, key Key) {
+func (t *Textbox) uiKeyEvent(mod Modifier, key Key) {
 	redraw := false
 	switch key {
 	case KeyCtrlC:
@@ -79,13 +79,13 @@ func (t *Textbox) keyEvent(mod Modifier, key Key) {
 		}
 	}
 	if redraw {
-		t.draw()
+		t.uiDraw()
 		termbox.Flush()
 	}
 }
 
-func (t *Textbox) characterEvent(chr rune) {
+func (t *Textbox) uiCharacterEvent(chr rune) {
 	t.Text = t.Text + string(chr)
-	t.draw()
+	t.uiDraw()
 	termbox.Flush()
 }

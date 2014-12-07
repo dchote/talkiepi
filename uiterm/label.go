@@ -19,17 +19,17 @@ func (l *Label) uiInitialize(ui *Ui) {
 	l.ui = ui
 }
 
-func (l *Label) setActive(active bool) {
+func (l *Label) uiSetActive(active bool) {
 }
 
-func (l *Label) setBounds(x0, y0, x1, y1 int) {
+func (l *Label) uiSetBounds(x0, y0, x1, y1 int) {
 	l.x0 = x0
 	l.y0 = y0
 	l.x1 = x1
 	l.y1 = y1
 }
 
-func (l *Label) draw() {
+func (l *Label) uiDraw() {
 	reader := strings.NewReader(l.Text)
 	for y := l.y0; y < l.y1; y++ {
 		for x := l.x0; x < l.x1; x++ {
@@ -44,8 +44,8 @@ func (l *Label) draw() {
 	}
 }
 
-func (l *Label) keyEvent(mod Modifier, key Key) {
+func (l *Label) uiKeyEvent(mod Modifier, key Key) {
 }
 
-func (l *Label) characterEvent(chr rune) {
+func (l *Label) uiCharacterEvent(chr rune) {
 }

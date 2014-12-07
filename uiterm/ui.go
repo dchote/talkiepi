@@ -52,7 +52,7 @@ func (ui *Ui) Refresh() {
 		termbox.Clear(termbox.Attribute(ui.Fg), termbox.Attribute(ui.Bg))
 		termbox.HideCursor()
 		for _, element := range ui.elements {
-			element.View.draw()
+			element.View.uiDraw()
 		}
 		termbox.Flush()
 	}
@@ -65,11 +65,11 @@ func (ui *Ui) Active() View {
 func (ui *Ui) SetActive(name string) {
 	element, _ := ui.elements[name]
 	if ui.activeElement != nil {
-		ui.activeElement.View.setActive(false)
+		ui.activeElement.View.uiSetActive(false)
 	}
 	ui.activeElement = element
 	if element != nil {
-		element.View.setActive(true)
+		element.View.uiSetActive(true)
 	}
 	ui.Refresh()
 }
@@ -118,7 +118,7 @@ func (ui *Ui) Run() error {
 
 func (ui *Ui) onCharacterEvent(ch rune) {
 	if ui.activeElement != nil {
-		ui.activeElement.View.characterEvent(ch)
+		ui.activeElement.View.uiCharacterEvent(ch)
 	}
 }
 
@@ -129,7 +129,7 @@ func (ui *Ui) onKeyEvent(mod Modifier, key Key) {
 		}
 	}
 	if ui.activeElement != nil {
-		ui.activeElement.View.keyEvent(mod, key)
+		ui.activeElement.View.uiKeyEvent(mod, key)
 	}
 }
 
@@ -147,13 +147,10 @@ func (ui *Ui) Add(name string, view View) error {
 func (ui *Ui) SetBounds(name string, x0, y0, x1, y1 int) error {
 	element, ok := ui.elements[name]
 	if !ok {
-		return errors.New("view cannot be found")
+		return errors.New("view does not exist")
 	}
-	element.X0 = x0
-	element.Y0 = y0
-	element.X1 = x1
-	element.Y1 = y1
-	element.View.setBounds(x0, y0, x1, y1)
+	element.X0, element.Y0, element.X1, element.Y1 = x0, y0, x1, y1
+	element.View.uiSetBounds(x0, y0, x1, y1)
 	return nil
 }
 

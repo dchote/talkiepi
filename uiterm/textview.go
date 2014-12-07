@@ -22,10 +22,10 @@ func (t *Textview) uiInitialize(ui *Ui) {
 	t.ui = ui
 }
 
-func (t *Textview) setActive(active bool) {
+func (t *Textview) uiSetActive(active bool) {
 }
 
-func (t *Textview) setBounds(x0, y0, x1, y1 int) {
+func (t *Textview) uiSetBounds(x0, y0, x1, y1 int) {
 	t.x0 = x0
 	t.y0 = y0
 	t.x1 = x1
@@ -102,7 +102,7 @@ func (t *Textview) Clear() {
 	t.parsedLines = nil
 }
 
-func (t *Textview) draw() {
+func (t *Textview) uiDraw() {
 	var reader *strings.Reader
 	line := len(t.parsedLines) - 1 - t.CurrentLine
 	if line < 0 {
@@ -140,8 +140,8 @@ func (t *Textview) draw() {
 	}
 }
 
-func (t *Textview) keyEvent(mod Modifier, key Key) {
+func (t *Textview) uiKeyEvent(mod Modifier, key Key) {
 }
 
-func (t *Textview) characterEvent(chr rune) {
+func (t *Textview) uiCharacterEvent(chr rune) {
 }
