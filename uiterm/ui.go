@@ -1,6 +1,8 @@
 package uiterm
 
 import (
+	"errors"
+
 	"github.com/nsf/termbox-go"
 )
 
@@ -14,6 +16,9 @@ type UiManager interface {
 }
 
 type Ui struct {
+	Fg Attribute
+	Bg Attribute
+
 	close   chan bool
 	manager UiManager
 
@@ -21,9 +26,6 @@ type Ui struct {
 	activeElement *uiElement
 
 	keyListeners map[Key][]KeyListener
-
-	fg Attribute
-	bg Attribute
 }
 
 type uiElement struct {
@@ -49,7 +51,7 @@ func (ui *Ui) Close() {
 
 func (ui *Ui) Refresh() {
 	if termbox.IsInit {
-		termbox.Clear(termbox.Attribute(ui.fg), termbox.Attribute(ui.bg))
+		termbox.Clear(termbox.Attribute(ui.Fg), termbox.Attribute(ui.Bg))
 		termbox.HideCursor()
 		for _, element := range ui.elements {
 			element.View.draw()
@@ -72,11 +74,6 @@ func (ui *Ui) SetActive(name string) {
 		element.View.setActive(true)
 	}
 	ui.Refresh()
-}
-
-func (ui *Ui) SetClear(fg, bg Attribute) {
-	ui.fg = fg
-	ui.bg = bg
 }
 
 func (ui *Ui) Run() error {
@@ -138,32 +135,28 @@ func (ui *Ui) onKeyEvent(mod Modifier, key Key) {
 	}
 }
 
-func (ui *Ui) SetView(name string, x0, y0, x1, y1 int, view View) {
-	if element, ok := ui.elements[name]; ok {
-		element.X0 = x0
-		element.Y0 = y0
-		element.X1 = x1
-		element.Y1 = y1
-		view = element.View
-	} else {
-		ui.elements[name] = &uiElement{
-			X0:   x0,
-			Y0:   y0,
-			X1:   x1,
-			Y1:   y1,
-			View: view,
-		}
-		view.uiInitialize(ui)
+func (ui *Ui) Add(name string, view View) error {
+	if _, ok := ui.elements[name]; ok {
+		return errors.New("view already exists")
 	}
-	view.setBounds(x0, y0, x1, y1)
+	ui.elements[name] = &uiElement{
+		View: view,
+	}
+	view.uiInitialize(ui)
+	return nil
 }
 
-func (ui *Ui) View(name string) View {
-	if element, ok := ui.elements[name]; !ok {
-		return nil
-	} else {
-		return element.View
+func (ui *Ui) SetBounds(name string, x0, y0, x1, y1 int) error {
+	element, ok := ui.elements[name]
+	if !ok {
+		return errors.New("view cannot be found")
 	}
+	element.X0 = x0
+	element.Y0 = y0
+	element.X1 = x1
+	element.Y1 = y1
+	element.View.setBounds(x0, y0, x1, y1)
+	return nil
 }
 
 func (ui *Ui) AddKeyListener(listener KeyListener, key Key) {

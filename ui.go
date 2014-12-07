@@ -109,13 +109,13 @@ func (b *Barnard) OnTextInput(ui *uiterm.Ui, textbox *uiterm.Textbox, text strin
 }
 
 func (b *Barnard) OnUiInitialize(ui *uiterm.Ui) {
-	ui.SetView(uiViewLogo, 0, 0, 0, 0, &uiterm.Label{
+	ui.Add(uiViewLogo, &uiterm.Label{
 		Text: " barnard ",
 		Fg:   uiterm.ColorWhite | uiterm.AttrBold,
 		Bg:   uiterm.ColorMagenta,
 	})
 
-	ui.SetView(uiViewTop, 0, 0, 0, 0, &uiterm.Label{
+	ui.Add(uiViewTop, &uiterm.Label{
 		Fg: uiterm.ColorWhite,
 		Bg: uiterm.ColorBlue,
 	})
@@ -125,26 +125,26 @@ func (b *Barnard) OnUiInitialize(ui *uiterm.Ui) {
 		Fg:   uiterm.ColorBlack,
 		Bg:   uiterm.ColorWhite,
 	}
-	ui.SetView(uiViewStatus, 0, 0, 0, 0, &b.UiStatus)
+	ui.Add(uiViewStatus, &b.UiStatus)
 
 	b.UiInput = uiterm.Textbox{
 		Fg:    uiterm.ColorWhite,
 		Bg:    uiterm.ColorBlack,
 		Input: b.OnTextInput,
 	}
-	ui.SetView(uiViewInput, 0, 0, 0, 0, &b.UiInput)
+	ui.Add(uiViewInput, &b.UiInput)
 
 	b.UiInputStatus = uiterm.Label{
 		Fg: uiterm.ColorBlack,
 		Bg: uiterm.ColorWhite,
 	}
-	ui.SetView(uiViewInputStatus, 0, 0, 0, 0, &b.UiInputStatus)
+	ui.Add(uiViewInputStatus, &b.UiInputStatus)
 
 	b.UiOutput = uiterm.Textview{
 		Fg: uiterm.ColorWhite,
 		Bg: uiterm.ColorBlack,
 	}
-	ui.SetView(uiViewOutput, 0, 0, 0, 0, &b.UiOutput)
+	ui.Add(uiViewOutput, &b.UiOutput)
 
 	b.UiTree = uiterm.Tree{
 		Generator: b.TreeItem,
@@ -152,7 +152,7 @@ func (b *Barnard) OnUiInitialize(ui *uiterm.Ui) {
 		Fg:        uiterm.ColorWhite,
 		Bg:        uiterm.ColorBlack,
 	}
-	ui.SetView(uiViewTree, 0, 0, 0, 0, &b.UiTree)
+	ui.Add(uiViewTree, &b.UiTree)
 
 	b.Ui.AddKeyListener(b.OnFocusPress, uiterm.KeyTab)
 	b.Ui.AddKeyListener(b.OnVoiceToggle, uiterm.KeyF1)
@@ -165,11 +165,11 @@ func (b *Barnard) OnUiInitialize(ui *uiterm.Ui) {
 }
 
 func (b *Barnard) OnUiResize(ui *uiterm.Ui, width, height int) {
-	ui.SetView(uiViewLogo, 0, 0, 9, 1, nil)
-	ui.SetView(uiViewTop, 9, 0, width-6, 1, nil)
-	ui.SetView(uiViewStatus, width-6, 0, width, 1, nil)
-	ui.SetView(uiViewInput, 0, height-1, width, height, nil)
-	ui.SetView(uiViewInputStatus, 0, height-2, width, height-1, nil)
-	ui.SetView(uiViewOutput, 0, 1, width-20, height-2, nil)
-	ui.SetView(uiViewTree, width-20, 1, width, height-2, nil)
+	ui.SetBounds(uiViewLogo, 0, 0, 9, 1)
+	ui.SetBounds(uiViewTop, 9, 0, width-6, 1)
+	ui.SetBounds(uiViewStatus, width-6, 0, width, 1)
+	ui.SetBounds(uiViewInput, 0, height-1, width, height)
+	ui.SetBounds(uiViewInputStatus, 0, height-2, width, height-1)
+	ui.SetBounds(uiViewOutput, 0, 1, width-20, height-2)
+	ui.SetBounds(uiViewTree, width-20, 1, width, height-2)
 }
