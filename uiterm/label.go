@@ -11,7 +11,7 @@ type Label struct {
 	Fg   Attribute
 	Bg   Attribute
 
-	ui *Ui
+	ui             *Ui
 	x0, y0, x1, y1 int
 }
 

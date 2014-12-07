@@ -12,9 +12,9 @@ type Textview struct {
 	Fg          Attribute
 	Bg          Attribute
 
-	parsedLines    []string
+	parsedLines []string
 
-	ui *Ui
+	ui             *Ui
 	x0, y0, x1, y1 int
 }
 

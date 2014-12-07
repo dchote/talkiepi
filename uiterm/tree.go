@@ -26,10 +26,10 @@ type Tree struct {
 	Generator TreeFunc
 	Listener  TreeListener
 
-	lines          []renderedTreeItem
-	activeLine     int
+	lines      []renderedTreeItem
+	activeLine int
 
-	ui *Ui
+	ui             *Ui
 	active         bool
 	x0, y0, x1, y1 int
 }

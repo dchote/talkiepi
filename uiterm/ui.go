@@ -27,6 +27,7 @@ type Ui struct {
 }
 
 type uiElement struct {
+	Name           string
 	X0, Y0, X1, Y1 int
 	View           View
 }
@@ -58,8 +59,8 @@ func (ui *Ui) Refresh() {
 	}
 }
 
-func (ui *Ui) Active() View {
-	return ui.activeElement.View
+func (ui *Ui) Active() string {
+	return ui.activeElement.Name
 }
 
 func (ui *Ui) SetActive(name string) {
@@ -138,6 +139,7 @@ func (ui *Ui) Add(name string, view View) error {
 		return errors.New("view already exists")
 	}
 	ui.elements[name] = &uiElement{
+		Name: name,
 		View: view,
 	}
 	view.uiInitialize(ui)

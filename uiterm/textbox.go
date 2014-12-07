@@ -14,7 +14,7 @@ type Textbox struct {
 
 	Input func(ui *Ui, textbox *Textbox, text string)
 
-	ui *Ui
+	ui             *Ui
 	active         bool
 	x0, y0, x1, y1 int
 }

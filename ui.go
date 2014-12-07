@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/kennygrant/sanitize"
 	"github.com/layeh/barnard/uiterm"
 	"github.com/layeh/gumble/gumble"
-	"github.com/kennygrant/sanitize"
 )
 
 const (
@@ -91,9 +91,9 @@ func (b *Barnard) OnScrollOutputBottom(ui *uiterm.Ui, key uiterm.Key) {
 
 func (b *Barnard) OnFocusPress(ui *uiterm.Ui, key uiterm.Key) {
 	active := b.Ui.Active()
-	if active == &b.UiInput {
+	if active == uiViewInput {
 		b.Ui.SetActive(uiViewTree)
-	} else if active == &b.UiTree {
+	} else if active == uiViewTree {
 		b.Ui.SetActive(uiViewInput)
 	}
 }
