@@ -7,14 +7,12 @@ import (
 	"github.com/nsf/termbox-go"
 )
 
-type InputFunc func(ui *Ui, textbox *Textbox, text string)
-
 type Textbox struct {
 	Text string
 	Fg   Attribute
 	Bg   Attribute
 
-	Input InputFunc
+	Input func(ui *Ui, textbox *Textbox, text string)
 
 	ui *Ui
 	active         bool

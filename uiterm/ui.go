@@ -6,8 +6,6 @@ import (
 	"github.com/nsf/termbox-go"
 )
 
-type LayoutFunc func(ui *Ui, width, height int)
-
 type KeyListener func(ui *Ui, key Key)
 
 type UiManager interface {
