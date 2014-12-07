@@ -28,6 +28,8 @@ type Tree struct {
 
 	lines          []renderedTreeItem
 	activeLine     int
+
+	ui *Ui
 	active         bool
 	x0, y0, x1, y1 int
 }
@@ -42,7 +44,11 @@ func bounded(i, lower, upper int) int {
 	return i
 }
 
-func (t *Tree) setBounds(ui *Ui, x0, y0, x1, y1 int) {
+func (t *Tree) uiInitialize(ui *Ui) {
+	t.ui = ui
+}
+
+func (t *Tree) setBounds(x0, y0, x1, y1 int) {
 	t.x0 = x0
 	t.y0 = y0
 	t.x1 = x1
@@ -85,7 +91,7 @@ func (t *Tree) rebuild_rec(parent TreeItem, level int) []renderedTreeItem {
 	return lines
 }
 
-func (t *Tree) draw(ui *Ui) {
+func (t *Tree) draw() {
 	if t.lines == nil {
 		t.Rebuild()
 	}
@@ -118,11 +124,11 @@ func (t *Tree) draw(ui *Ui) {
 	}
 }
 
-func (t *Tree) setActive(ui *Ui, active bool) {
+func (t *Tree) setActive(active bool) {
 	t.active = active
 }
 
-func (t *Tree) keyEvent(ui *Ui, mod Modifier, key Key) {
+func (t *Tree) keyEvent(mod Modifier, key Key) {
 	switch key {
 	case KeyArrowUp:
 		t.activeLine = bounded(t.activeLine-1, 0, len(t.lines)-1)
@@ -130,11 +136,11 @@ func (t *Tree) keyEvent(ui *Ui, mod Modifier, key Key) {
 		t.activeLine = bounded(t.activeLine+1, 0, len(t.lines)-1)
 	case KeyEnter:
 		if t.Listener != nil && t.activeLine >= 0 && t.activeLine < len(t.lines) {
-			t.Listener(ui, t, t.lines[t.activeLine].Item)
+			t.Listener(t.ui, t, t.lines[t.activeLine].Item)
 		}
 	}
-	ui.Refresh()
+	t.ui.Refresh()
 }
 
-func (t *Tree) characterEvent(ui *Ui, ch rune) {
+func (t *Tree) characterEvent(ch rune) {
 }

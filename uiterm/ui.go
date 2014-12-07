@@ -52,7 +52,7 @@ func (ui *Ui) Refresh() {
 		termbox.Clear(termbox.Attribute(ui.fg), termbox.Attribute(ui.bg))
 		termbox.HideCursor()
 		for _, element := range ui.elements {
-			element.View.draw(ui)
+			element.View.draw()
 		}
 		termbox.Flush()
 	}
@@ -65,11 +65,11 @@ func (ui *Ui) Active() View {
 func (ui *Ui) SetActive(name string) {
 	element, _ := ui.elements[name]
 	if ui.activeElement != nil {
-		ui.activeElement.View.setActive(ui, false)
+		ui.activeElement.View.setActive(false)
 	}
 	ui.activeElement = element
 	if element != nil {
-		element.View.setActive(ui, true)
+		element.View.setActive(true)
 	}
 	ui.Refresh()
 }
@@ -123,7 +123,7 @@ func (ui *Ui) Run() error {
 
 func (ui *Ui) onCharacterEvent(ch rune) {
 	if ui.activeElement != nil {
-		ui.activeElement.View.characterEvent(ui, ch)
+		ui.activeElement.View.characterEvent(ch)
 	}
 }
 
@@ -134,7 +134,7 @@ func (ui *Ui) onKeyEvent(mod Modifier, key Key) {
 		}
 	}
 	if ui.activeElement != nil {
-		ui.activeElement.View.keyEvent(ui, mod, key)
+		ui.activeElement.View.keyEvent(mod, key)
 	}
 }
 
@@ -153,8 +153,9 @@ func (ui *Ui) SetView(name string, x0, y0, x1, y1 int, view View) {
 			Y1:   y1,
 			View: view,
 		}
+		view.uiInitialize(ui)
 	}
-	view.setBounds(ui, x0, y0, x1, y1)
+	view.setBounds(x0, y0, x1, y1)
 }
 
 func (ui *Ui) View(name string) View {

@@ -16,22 +16,27 @@ type Textbox struct {
 
 	Input InputFunc
 
+	ui *Ui
 	active         bool
 	x0, y0, x1, y1 int
 }
 
-func (t *Textbox) setBounds(ui *Ui, x0, y0, x1, y1 int) {
+func (t *Textbox) uiInitialize(ui *Ui) {
+	t.ui = ui
+}
+
+func (t *Textbox) setBounds(x0, y0, x1, y1 int) {
 	t.x0 = x0
 	t.y0 = y0
 	t.x1 = x1
 	t.y1 = y1
 }
 
-func (t *Textbox) setActive(ui *Ui, active bool) {
+func (t *Textbox) setActive(active bool) {
 	t.active = active
 }
 
-func (t *Textbox) draw(ui *Ui) {
+func (t *Textbox) draw() {
 	var setCursor = false
 	reader := strings.NewReader(t.Text)
 	for y := t.y0; y < t.y1; y++ {
@@ -51,7 +56,7 @@ func (t *Textbox) draw(ui *Ui) {
 	}
 }
 
-func (t *Textbox) keyEvent(ui *Ui, mod Modifier, key Key) {
+func (t *Textbox) keyEvent(mod Modifier, key Key) {
 	redraw := false
 	switch key {
 	case KeyCtrlC:
@@ -59,7 +64,7 @@ func (t *Textbox) keyEvent(ui *Ui, mod Modifier, key Key) {
 		redraw = true
 	case KeyEnter:
 		if t.Input != nil {
-			t.Input(ui, t, t.Text)
+			t.Input(t.ui, t, t.Text)
 		}
 		t.Text = ""
 		redraw = true
@@ -76,13 +81,13 @@ func (t *Textbox) keyEvent(ui *Ui, mod Modifier, key Key) {
 		}
 	}
 	if redraw {
-		t.draw(ui)
+		t.draw()
 		termbox.Flush()
 	}
 }
 
-func (t *Textbox) characterEvent(ui *Ui, chr rune) {
+func (t *Textbox) characterEvent(chr rune) {
 	t.Text = t.Text + string(chr)
-	t.draw(ui)
+	t.draw()
 	termbox.Flush()
 }
