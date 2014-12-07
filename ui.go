@@ -33,7 +33,6 @@ func (b *Barnard) UpdateInputStatus(status string) {
 func (b *Barnard) AddOutputLine(line string) {
 	now := time.Now()
 	b.UiOutput.AddLine(fmt.Sprintf("[%02d:%02d:%02d] %s", now.Hour(), now.Minute(), now.Second(), line))
-	b.Ui.Refresh()
 }
 
 func (b *Barnard) AddOutputMessage(sender *gumble.User, message string) {
@@ -66,27 +65,22 @@ func (b *Barnard) OnQuitPress(ui *uiterm.Ui, key uiterm.Key) {
 
 func (b *Barnard) OnClearPress(ui *uiterm.Ui, key uiterm.Key) {
 	b.UiOutput.Clear()
-	b.Ui.Refresh()
 }
 
 func (b *Barnard) OnScrollOutputUp(ui *uiterm.Ui, key uiterm.Key) {
 	b.UiOutput.ScrollUp()
-	b.Ui.Refresh()
 }
 
 func (b *Barnard) OnScrollOutputDown(ui *uiterm.Ui, key uiterm.Key) {
 	b.UiOutput.ScrollDown()
-	b.Ui.Refresh()
 }
 
 func (b *Barnard) OnScrollOutputTop(ui *uiterm.Ui, key uiterm.Key) {
 	b.UiOutput.ScrollTop()
-	b.Ui.Refresh()
 }
 
 func (b *Barnard) OnScrollOutputBottom(ui *uiterm.Ui, key uiterm.Key) {
 	b.UiOutput.ScrollBottom()
-	b.Ui.Refresh()
 }
 
 func (b *Barnard) OnFocusPress(ui *uiterm.Ui, key uiterm.Key) {
