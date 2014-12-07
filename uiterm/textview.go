@@ -16,10 +16,10 @@ type Textview struct {
 	x0, y0, x1, y1 int
 }
 
-func (t *Textview) SetActive(ui *Ui, active bool) {
+func (t *Textview) setActive(ui *Ui, active bool) {
 }
 
-func (t *Textview) SetBounds(ui *Ui, x0, y0, x1, y1 int) {
+func (t *Textview) setBounds(ui *Ui, x0, y0, x1, y1 int) {
 	t.x0 = x0
 	t.y0 = y0
 	t.x1 = x1
@@ -96,7 +96,7 @@ func (t *Textview) Clear() {
 	t.parsedLines = nil
 }
 
-func (t *Textview) Draw(ui *Ui) {
+func (t *Textview) draw(ui *Ui) {
 	var reader *strings.Reader
 	line := len(t.parsedLines) - 1 - t.CurrentLine
 	if line < 0 {
@@ -134,8 +134,8 @@ func (t *Textview) Draw(ui *Ui) {
 	}
 }
 
-func (t *Textview) KeyEvent(ui *Ui, mod Modifier, key Key) {
+func (t *Textview) keyEvent(ui *Ui, mod Modifier, key Key) {
 }
 
-func (t *Textview) CharacterEvent(ui *Ui, chr rune) {
+func (t *Textview) characterEvent(ui *Ui, chr rune) {
 }

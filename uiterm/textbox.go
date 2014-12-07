@@ -20,18 +20,18 @@ type Textbox struct {
 	x0, y0, x1, y1 int
 }
 
-func (t *Textbox) SetBounds(ui *Ui, x0, y0, x1, y1 int) {
+func (t *Textbox) setBounds(ui *Ui, x0, y0, x1, y1 int) {
 	t.x0 = x0
 	t.y0 = y0
 	t.x1 = x1
 	t.y1 = y1
 }
 
-func (t *Textbox) SetActive(ui *Ui, active bool) {
+func (t *Textbox) setActive(ui *Ui, active bool) {
 	t.active = active
 }
 
-func (t *Textbox) Draw(ui *Ui) {
+func (t *Textbox) draw(ui *Ui) {
 	var setCursor = false
 	reader := strings.NewReader(t.Text)
 	for y := t.y0; y < t.y1; y++ {
@@ -51,7 +51,7 @@ func (t *Textbox) Draw(ui *Ui) {
 	}
 }
 
-func (t *Textbox) KeyEvent(ui *Ui, mod Modifier, key Key) {
+func (t *Textbox) keyEvent(ui *Ui, mod Modifier, key Key) {
 	redraw := false
 	switch key {
 	case KeyCtrlC:
@@ -76,13 +76,13 @@ func (t *Textbox) KeyEvent(ui *Ui, mod Modifier, key Key) {
 		}
 	}
 	if redraw {
-		t.Draw(ui)
+		t.draw(ui)
 		termbox.Flush()
 	}
 }
 
-func (t *Textbox) CharacterEvent(ui *Ui, chr rune) {
+func (t *Textbox) characterEvent(ui *Ui, chr rune) {
 	t.Text = t.Text + string(chr)
-	t.Draw(ui)
+	t.draw(ui)
 	termbox.Flush()
 }

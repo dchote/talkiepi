@@ -42,7 +42,7 @@ func bounded(i, lower, upper int) int {
 	return i
 }
 
-func (t *Tree) SetBounds(ui *Ui, x0, y0, x1, y1 int) {
+func (t *Tree) setBounds(ui *Ui, x0, y0, x1, y1 int) {
 	t.x0 = x0
 	t.y0 = y0
 	t.x1 = x1
@@ -85,7 +85,7 @@ func (t *Tree) rebuild_rec(parent TreeItem, level int) []renderedTreeItem {
 	return lines
 }
 
-func (t *Tree) Draw(ui *Ui) {
+func (t *Tree) draw(ui *Ui) {
 	if t.lines == nil {
 		t.Rebuild()
 	}
@@ -118,11 +118,11 @@ func (t *Tree) Draw(ui *Ui) {
 	}
 }
 
-func (t *Tree) SetActive(ui *Ui, active bool) {
+func (t *Tree) setActive(ui *Ui, active bool) {
 	t.active = active
 }
 
-func (t *Tree) KeyEvent(ui *Ui, mod Modifier, key Key) {
+func (t *Tree) keyEvent(ui *Ui, mod Modifier, key Key) {
 	switch key {
 	case KeyArrowUp:
 		t.activeLine = bounded(t.activeLine-1, 0, len(t.lines)-1)
@@ -136,5 +136,5 @@ func (t *Tree) KeyEvent(ui *Ui, mod Modifier, key Key) {
 	ui.Refresh()
 }
 
-func (t *Tree) CharacterEvent(ui *Ui, ch rune) {
+func (t *Tree) characterEvent(ui *Ui, ch rune) {
 }
