@@ -17,14 +17,11 @@ type renderedTreeItem struct {
 	Item  TreeItem
 }
 
-type TreeFunc func(item TreeItem) []TreeItem
-type TreeListener func(ui *Ui, tree *Tree, item TreeItem)
-
 type Tree struct {
 	Fg        Attribute
 	Bg        Attribute
-	Generator TreeFunc
-	Listener  TreeListener
+	Generator func(item TreeItem) []TreeItem
+	Listener  func(ui *Ui, tree *Tree, item TreeItem)
 
 	lines      []renderedTreeItem
 	activeLine int
