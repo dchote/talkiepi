@@ -30,6 +30,9 @@ func (l *Label) uiSetBounds(x0, y0, x1, y1 int) {
 }
 
 func (l *Label) uiDraw() {
+	l.ui.beginDraw()
+	defer l.ui.endDraw()
+
 	reader := strings.NewReader(l.Text)
 	for y := l.y0; y < l.y1; y++ {
 		for x := l.x0; x < l.x1; x++ {

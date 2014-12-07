@@ -96,6 +96,9 @@ func (t *Tree) rebuild_rec(parent TreeItem, level int) []renderedTreeItem {
 }
 
 func (t *Tree) uiDraw() {
+	t.ui.beginDraw()
+	defer t.ui.endDraw()
+
 	if t.lines == nil {
 		t.Rebuild()
 	}

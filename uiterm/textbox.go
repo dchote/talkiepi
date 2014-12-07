@@ -35,6 +35,9 @@ func (t *Textbox) uiSetBounds(x0, y0, x1, y1 int) {
 }
 
 func (t *Textbox) uiDraw() {
+	t.ui.beginDraw()
+	defer t.ui.endDraw()
+
 	var setCursor = false
 	reader := strings.NewReader(t.Text)
 	for y := t.y0; y < t.y1; y++ {
@@ -80,12 +83,10 @@ func (t *Textbox) uiKeyEvent(mod Modifier, key Key) {
 	}
 	if redraw {
 		t.uiDraw()
-		termbox.Flush()
 	}
 }
 
 func (t *Textbox) uiCharacterEvent(chr rune) {
 	t.Text = t.Text + string(chr)
 	t.uiDraw()
-	termbox.Flush()
 }

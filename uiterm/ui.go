@@ -2,6 +2,7 @@ package uiterm
 
 import (
 	"errors"
+	"sync/atomic"
 
 	"github.com/nsf/termbox-go"
 )
@@ -20,6 +21,7 @@ type Ui struct {
 	close   chan bool
 	manager UiManager
 
+	drawCount     int32
 	elements      map[string]*uiElement
 	activeElement *uiElement
 
@@ -50,11 +52,23 @@ func (ui *Ui) Close() {
 
 func (ui *Ui) Refresh() {
 	if termbox.IsInit {
+		ui.beginDraw()
+		defer ui.endDraw()
+
 		termbox.Clear(termbox.Attribute(ui.Fg), termbox.Attribute(ui.Bg))
 		termbox.HideCursor()
 		for _, element := range ui.elements {
 			element.View.uiDraw()
 		}
+	}
+}
+
+func (ui *Ui) beginDraw() {
+	atomic.AddInt32(&ui.drawCount, 1)
+}
+
+func (ui *Ui) endDraw() {
+	if count := atomic.AddInt32(&ui.drawCount, -1); count == 0 {
 		termbox.Flush()
 	}
 }

@@ -103,6 +103,9 @@ func (t *Textview) Clear() {
 }
 
 func (t *Textview) uiDraw() {
+	t.ui.beginDraw()
+	defer t.ui.endDraw()
+
 	var reader *strings.Reader
 	line := len(t.parsedLines) - 1 - t.CurrentLine
 	if line < 0 {
