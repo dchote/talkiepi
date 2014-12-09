@@ -25,7 +25,7 @@ func (ti TreeItem) TreeItemStyle(fg, bg uiterm.Attribute, active bool) (uiterm.A
 		fg |= uiterm.AttrBold
 	}
 	if active {
-		bg |= uiterm.AttrReverse
+		fg, bg = bg, fg
 	}
 	return fg, bg
 }
