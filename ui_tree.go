@@ -20,9 +20,7 @@ func (ti TreeItem) String() string {
 	return ""
 }
 
-func (ti TreeItem) TreeItemStyle(active bool) (uiterm.Attribute, uiterm.Attribute) {
-	fg := uiterm.ColorDefault
-	bg := uiterm.ColorBlack
+func (ti TreeItem) TreeItemStyle(fg, bg uiterm.Attribute, active bool) (uiterm.Attribute, uiterm.Attribute) {
 	if ti.Channel != nil {
 		fg |= uiterm.AttrBold
 	}

@@ -7,7 +7,7 @@ import (
 )
 
 type TreeItem interface {
-	TreeItemStyle(active bool) (Attribute, Attribute)
+	TreeItemStyle(fg, bg Attribute, active bool) (Attribute, Attribute)
 	String() string
 }
 
@@ -122,7 +122,7 @@ func (t *Tree) uiDraw() {
 			if reader != nil && level*2 <= dx {
 				if ch, _, err := reader.ReadRune(); err == nil {
 					chr = ch
-					fg, bg = item.TreeItemStyle(t.active && t.activeLine == dy)
+					fg, bg = item.TreeItemStyle(fg, bg, t.active && t.activeLine == dy)
 				}
 			}
 			termbox.SetCell(x, y, chr, termbox.Attribute(fg), termbox.Attribute(bg))
