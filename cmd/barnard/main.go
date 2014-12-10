@@ -29,7 +29,6 @@ func main() {
 	b.Config = gumble.Config{
 		Username: *username,
 		Address:  *server,
-		Listener: &b,
 	}
 	if *insecure {
 		b.Config.TLSConfig.InsecureSkipVerify = true
@@ -44,12 +43,12 @@ func main() {
 	}
 
 	b.Client = gumble.NewClient(&b.Config)
+	b.Client.Attach(&b)
 	// Audio
 	if stream, err := gumble_openal.New(b.Client); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
 	} else {
-		b.Config.AudioListener = stream
 		b.Stream = stream
 	}
 
