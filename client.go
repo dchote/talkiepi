@@ -44,7 +44,7 @@ func (b *Barnard) OnDisconnect(e *gumble.DisconnectEvent) {
 	case gumble.DisconnectNoCertificate:
 		reason = "missing certificate"
 	case gumble.DisconnectAuthenticatorFail:
-		reason = "authenticator via  failed"
+		reason = "authenticator verification failed"
 	}
 	if reason == "" {
 		b.AddOutputLine("Disconnected")
