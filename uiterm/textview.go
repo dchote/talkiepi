@@ -9,8 +9,7 @@ import (
 type Textview struct {
 	Lines       []string
 	CurrentLine int
-	Fg          Attribute
-	Bg          Attribute
+	Fg, Bg      Attribute
 
 	parsedLines []string
 

@@ -18,8 +18,7 @@ type renderedTreeItem struct {
 }
 
 type Tree struct {
-	Fg        Attribute
-	Bg        Attribute
+	Fg, Bg    Attribute
 	Generator func(item TreeItem) []TreeItem
 	Listener  func(ui *Ui, tree *Tree, item TreeItem)
 

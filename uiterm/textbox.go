@@ -8,9 +8,8 @@ import (
 )
 
 type Textbox struct {
-	Text string
-	Fg   Attribute
-	Bg   Attribute
+	Text   string
+	Fg, Bg Attribute
 
 	Input func(ui *Ui, textbox *Textbox, text string)
 

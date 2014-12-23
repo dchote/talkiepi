@@ -15,8 +15,7 @@ type UiManager interface {
 }
 
 type Ui struct {
-	Fg Attribute
-	Bg Attribute
+	Fg, Bg Attribute
 
 	close   chan bool
 	manager UiManager

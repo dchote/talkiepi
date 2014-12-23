@@ -7,9 +7,8 @@ import (
 )
 
 type Label struct {
-	Text string
-	Fg   Attribute
-	Bg   Attribute
+	Text   string
+	Fg, Bg Attribute
 
 	ui             *Ui
 	x0, y0, x1, y1 int
