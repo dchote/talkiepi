@@ -102,7 +102,7 @@ func (b *Barnard) OnPermissionDenied(e *gumble.PermissionDeniedEvent) {
 func (b *Barnard) OnUserList(e *gumble.UserListEvent) {
 }
 
-func (b *Barnard) OnAcl(e *gumble.AclEvent) {
+func (b *Barnard) OnACL(e *gumble.ACLEvent) {
 }
 
 func (b *Barnard) OnBanList(e *gumble.BanListEvent) {
