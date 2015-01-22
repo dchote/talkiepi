@@ -9,6 +9,7 @@ import (
 	"github.com/layeh/barnard"
 	"github.com/layeh/barnard/uiterm"
 	"github.com/layeh/gumble/gumble"
+	"github.com/layeh/gumble/gumbleutil"
 	"github.com/layeh/gumble/gumble_openal"
 )
 
@@ -43,6 +44,7 @@ func main() {
 	}
 
 	b.Client = gumble.NewClient(&b.Config)
+	b.Client.Attach(gumbleutil.AutoBitrate)
 	b.Client.Attach(&b)
 	// Audio
 	if stream, err := gumble_openal.New(b.Client); err != nil {

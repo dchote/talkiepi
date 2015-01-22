@@ -11,10 +11,6 @@ func (b *Barnard) OnConnect(e *gumble.ConnectEvent) {
 	b.UiTree.Rebuild()
 	b.Ui.Refresh()
 
-	if b.Client.AudioEncoder().Bitrate() > e.MaximumBitrate {
-		b.Client.AudioEncoder().SetBitrate(e.MaximumBitrate / 3)
-	}
-
 	b.UpdateInputStatus(fmt.Sprintf("To: %s", e.Client.Self().Channel().Name()))
 	b.AddOutputLine(fmt.Sprintf("Connected to %s", b.Client.Conn().RemoteAddr()))
 	if e.WelcomeMessage != "" {
