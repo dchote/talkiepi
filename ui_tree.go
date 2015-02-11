@@ -12,10 +12,10 @@ type TreeItem struct {
 
 func (ti TreeItem) String() string {
 	if ti.User != nil {
-		return ti.User.Name()
+		return ti.User.Name
 	}
 	if ti.Channel != nil {
-		return ti.Channel.Name()
+		return ti.Channel.Name
 	}
 	return ""
 }
@@ -33,14 +33,14 @@ func (ti TreeItem) TreeItemStyle(fg, bg uiterm.Attribute, active bool) (uiterm.A
 func (b *Barnard) TreeItemSelect(ui *uiterm.Ui, tree *uiterm.Tree, item uiterm.TreeItem) {
 	treeItem := item.(TreeItem)
 	if treeItem.Channel != nil {
-		b.Client.Self().Move(treeItem.Channel)
+		b.Client.Self.Move(treeItem.Channel)
 	}
 }
 
 func (b *Barnard) TreeItem(item uiterm.TreeItem) []uiterm.TreeItem {
 	var treeItem TreeItem
 	if ti, ok := item.(TreeItem); !ok {
-		root := b.Client.Channels()[0]
+		root := b.Client.Channels[0]
 		if root == nil {
 			return nil
 		}
@@ -58,14 +58,14 @@ func (b *Barnard) TreeItem(item uiterm.TreeItem) []uiterm.TreeItem {
 	}
 
 	users := []uiterm.TreeItem{}
-	for _, user := range treeItem.Channel.Users() {
+	for _, user := range treeItem.Channel.Users {
 		users = append(users, TreeItem{
 			User: user,
 		})
 	}
 
 	channels := []uiterm.TreeItem{}
-	for _, subchannel := range treeItem.Channel.Channels() {
+	for _, subchannel := range treeItem.Channel.Children {
 		channels = append(channels, TreeItem{
 			Channel: subchannel,
 		})

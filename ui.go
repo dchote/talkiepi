@@ -39,7 +39,7 @@ func (b *Barnard) AddOutputMessage(sender *gumble.User, message string) {
 	if sender == nil {
 		b.AddOutputLine(message)
 	} else {
-		b.AddOutputLine(fmt.Sprintf("%s: %s", sender.Name(), strings.TrimSpace(esc(message))))
+		b.AddOutputLine(fmt.Sprintf("%s: %s", sender.Name, strings.TrimSpace(esc(message))))
 	}
 }
 
@@ -96,9 +96,9 @@ func (b *Barnard) OnTextInput(ui *uiterm.Ui, textbox *uiterm.Textbox, text strin
 	if text == "" {
 		return
 	}
-	if b.Client != nil && b.Client.Self() != nil {
-		b.Client.Self().Channel().Send(text, false)
-		b.AddOutputMessage(b.Client.Self(), text)
+	if b.Client != nil && b.Client.Self != nil {
+		b.Client.Self.Channel.Send(text, false)
+		b.AddOutputMessage(b.Client.Self, text)
 	}
 }
 
