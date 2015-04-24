@@ -47,6 +47,9 @@ func main() {
 	b.Client.Attach(gumbleutil.AutoBitrate)
 	b.Client.Attach(&b)
 	// Audio
+	if os.Getenv("ALSOFT_LOGLEVEL") == "" {
+		os.Setenv("ALSOFT_LOGLEVEL", "0")
+	}
 	if stream, err := gumble_openal.New(b.Client); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
