@@ -13,8 +13,8 @@ func (b *Barnard) OnConnect(e *gumble.ConnectEvent) {
 
 	b.UpdateInputStatus(fmt.Sprintf("To: %s", e.Client.Self.Channel.Name))
 	b.AddOutputLine(fmt.Sprintf("Connected to %s", b.Client.Conn.RemoteAddr()))
-	if e.WelcomeMessage != "" {
-		b.AddOutputLine(fmt.Sprintf("Welcome message: %s", esc(e.WelcomeMessage)))
+	if e.WelcomeMessage != nil {
+		b.AddOutputLine(fmt.Sprintf("Welcome message: %s", esc(*e.WelcomeMessage)))
 	}
 }
 
@@ -105,4 +105,7 @@ func (b *Barnard) OnBanList(e *gumble.BanListEvent) {
 }
 
 func (b *Barnard) OnContextActionChange(e *gumble.ContextActionChangeEvent) {
+}
+
+func (b *Barnard) OnServerConfig(e *gumble.ServerConfigEvent) {
 }
