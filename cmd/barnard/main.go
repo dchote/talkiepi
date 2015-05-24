@@ -27,10 +27,9 @@ func main() {
 	b.Ui = uiterm.New(&b)
 
 	// Gumble
-	b.Config = gumble.Config{
-		Username: *username,
-		Address:  *server,
-	}
+	b.Config = gumble.NewConfig()
+	b.Config.Username = *username
+	b.Config.Address = *server
 	if *insecure {
 		b.Config.TLSConfig.InsecureSkipVerify = true
 	}
@@ -43,7 +42,7 @@ func main() {
 		}
 	}
 
-	b.Client = gumble.NewClient(&b.Config)
+	b.Client = gumble.NewClient(b.Config)
 	b.Client.Attach(gumbleutil.AutoBitrate)
 	b.Client.Attach(&b)
 	// Audio

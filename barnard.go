@@ -7,7 +7,7 @@ import (
 )
 
 type Barnard struct {
-	Config gumble.Config
+	Config *gumble.Config
 	Client *gumble.Client
 
 	Stream *gumble_openal.Stream
