@@ -11,6 +11,7 @@ import (
 	"github.com/layeh/gumble/gumble"
 	"github.com/layeh/gumble/gumbleutil"
 	"github.com/layeh/gumble/gumble_openal"
+	_ "github.com/layeh/gumble/opus"
 )
 
 func main() {
