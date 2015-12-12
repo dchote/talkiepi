@@ -8,12 +8,12 @@ chat software.
 ## Requirements
 
 - [gumble](https://github.com/layeh/gumble/tree/master/gumble)
-- [gumble_openal](https://github.com/layeh/gumble/tree/master/gumble_openal)
+- [gumbleopenal](https://github.com/layeh/gumble/tree/master/gumbleopenal)
 - [termbox-go](https://github.com/nsf/termbox-go)
 
 ## License
 
-MIT
+MPL 2.0
 
 ## Author
 

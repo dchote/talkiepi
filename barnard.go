@@ -3,14 +3,14 @@ package barnard
 import (
 	"github.com/layeh/barnard/uiterm"
 	"github.com/layeh/gumble/gumble"
-	"github.com/layeh/gumble/gumble_openal"
+	"github.com/layeh/gumble/gumbleopenal"
 )
 
 type Barnard struct {
 	Config *gumble.Config
 	Client *gumble.Client
 
-	Stream *gumble_openal.Stream
+	Stream *gumbleopenal.Stream
 
 	Ui            *uiterm.Ui
 	UiOutput      uiterm.Textview

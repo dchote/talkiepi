@@ -10,7 +10,7 @@ import (
 	"github.com/layeh/barnard/uiterm"
 	"github.com/layeh/gumble/gumble"
 	"github.com/layeh/gumble/gumbleutil"
-	"github.com/layeh/gumble/gumble_openal"
+	"github.com/layeh/gumble/gumbleopenal"
 	_ "github.com/layeh/gumble/opus"
 )
 
@@ -50,7 +50,7 @@ func main() {
 	if os.Getenv("ALSOFT_LOGLEVEL") == "" {
 		os.Setenv("ALSOFT_LOGLEVEL", "0")
 	}
-	if stream, err := gumble_openal.New(b.Client); err != nil {
+	if stream, err := gumbleopenal.New(b.Client); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
 	} else {
