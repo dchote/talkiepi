@@ -2,11 +2,40 @@ package barnard
 
 import (
 	"fmt"
+	"net"
+	"os"
 
 	"github.com/layeh/gumble/gumble"
+	"github.com/layeh/gumble/gumbleopenal"
+	"github.com/layeh/gumble/gumbleutil"
 )
 
+func (b *Barnard) start() {
+	b.Config.Attach(gumbleutil.AutoBitrate)
+	b.Config.Attach(b)
+
+	var err error
+	_, err = gumble.DialWithDialer(new(net.Dialer), b.Address, b.Config, &b.TLSConfig)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+		os.Exit(1)
+	}
+
+	// Audio
+	if os.Getenv("ALSOFT_LOGLEVEL") == "" {
+		os.Setenv("ALSOFT_LOGLEVEL", "0")
+	}
+	if stream, err := gumbleopenal.New(b.Client); err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+		os.Exit(1)
+	} else {
+		b.Stream = stream
+	}
+}
+
 func (b *Barnard) OnConnect(e *gumble.ConnectEvent) {
+	b.Client = e.Client
+
 	b.Ui.SetActive(uiViewInput)
 	b.UiTree.Rebuild()
 	b.Ui.Refresh()
@@ -23,24 +52,6 @@ func (b *Barnard) OnDisconnect(e *gumble.DisconnectEvent) {
 	switch e.Type {
 	case gumble.DisconnectError:
 		reason = "connection error"
-	case gumble.DisconnectOther:
-		reason = e.String
-	case gumble.DisconnectVersion:
-		reason = "invalid version number"
-	case gumble.DisconnectUserName:
-		reason = "invalid user name"
-	case gumble.DisconnectUserCredentials:
-		reason = "incorrect user password/certificate"
-	case gumble.DisconnectServerPassword:
-		reason = "incorrect server password"
-	case gumble.DisconnectUsernameInUse:
-		reason = "user name in use"
-	case gumble.DisconnectServerFull:
-		reason = "server full"
-	case gumble.DisconnectNoCertificate:
-		reason = "missing certificate"
-	case gumble.DisconnectAuthenticatorFail:
-		reason = "authenticator verification failed"
 	}
 	if reason == "" {
 		b.AddOutputLine("Disconnected")

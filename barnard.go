@@ -1,6 +1,8 @@
 package barnard
 
 import (
+	"crypto/tls"
+
 	"github.com/layeh/barnard/uiterm"
 	"github.com/layeh/gumble/gumble"
 	"github.com/layeh/gumble/gumbleopenal"
@@ -9,6 +11,9 @@ import (
 type Barnard struct {
 	Config *gumble.Config
 	Client *gumble.Client
+
+	Address   string
+	TLSConfig tls.Config
 
 	Stream *gumbleopenal.Stream
 

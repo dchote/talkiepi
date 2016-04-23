@@ -38,6 +38,10 @@ func (b *Barnard) TreeItemSelect(ui *uiterm.Ui, tree *uiterm.Tree, item uiterm.T
 }
 
 func (b *Barnard) TreeItem(item uiterm.TreeItem) []uiterm.TreeItem {
+	if b.Client == nil {
+		return nil
+	}
+
 	var treeItem TreeItem
 	if ti, ok := item.(TreeItem); !ok {
 		root := b.Client.Channels[0]

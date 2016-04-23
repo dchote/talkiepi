@@ -9,8 +9,6 @@ import (
 	"github.com/layeh/barnard"
 	"github.com/layeh/barnard/uiterm"
 	"github.com/layeh/gumble/gumble"
-	"github.com/layeh/gumble/gumbleutil"
-	"github.com/layeh/gumble/gumbleopenal"
 	_ "github.com/layeh/gumble/opus"
 )
 
@@ -24,43 +22,25 @@ func main() {
 	flag.Parse()
 
 	// Initialize
-	b := barnard.Barnard{}
-	b.Ui = uiterm.New(&b)
+	b := barnard.Barnard{
+		Config: gumble.NewConfig(),
+		Address: *server,
+	}
 
-	// Gumble
-	b.Config = gumble.NewConfig()
 	b.Config.Username = *username
-	b.Config.Address = *server
+
 	if *insecure {
-		b.Config.TLSConfig.InsecureSkipVerify = true
+		b.TLSConfig.InsecureSkipVerify = true
 	}
 	if *certificate != "" {
-		if cert, err := tls.LoadX509KeyPair(*certificate, *certificate); err != nil {
+		cert, err := tls.LoadX509KeyPair(*certificate, *certificate)
+		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", err)
 			os.Exit(1)
-		} else {
-			b.Config.TLSConfig.Certificates = []tls.Certificate{cert}
 		}
+		b.TLSConfig.Certificates = append(b.TLSConfig.Certificates, cert)
 	}
 
-	b.Client = gumble.NewClient(b.Config)
-	b.Client.Attach(gumbleutil.AutoBitrate)
-	b.Client.Attach(&b)
-	// Audio
-	if os.Getenv("ALSOFT_LOGLEVEL") == "" {
-		os.Setenv("ALSOFT_LOGLEVEL", "0")
-	}
-	if stream, err := gumbleopenal.New(b.Client); err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
-		os.Exit(1)
-	} else {
-		b.Stream = stream
-	}
-
-	if err := b.Client.Connect(); err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
-		os.Exit(1)
-	}
-
+	b.Ui = uiterm.New(&b)
 	b.Ui.Run()
 }

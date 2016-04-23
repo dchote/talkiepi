@@ -156,6 +156,8 @@ func (b *Barnard) OnUiInitialize(ui *uiterm.Ui) {
 	b.Ui.AddKeyListener(b.OnScrollOutputDown, uiterm.KeyPgdn)
 	b.Ui.AddKeyListener(b.OnScrollOutputTop, uiterm.KeyHome)
 	b.Ui.AddKeyListener(b.OnScrollOutputBottom, uiterm.KeyEnd)
+
+	b.start()
 }
 
 func (b *Barnard) OnUiResize(ui *uiterm.Ui, width, height int) {
