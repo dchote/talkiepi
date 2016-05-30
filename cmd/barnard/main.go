@@ -16,6 +16,7 @@ func main() {
 	// Command line flags
 	server := flag.String("server", "localhost:64738", "the server to connect to")
 	username := flag.String("username", "", "the username of the client")
+	password := flag.String("password", "", "the password of the server")
 	insecure := flag.Bool("insecure", false, "skip server certificate verification")
 	certificate := flag.String("certificate", "", "PEM encoded certificate and private key")
 
@@ -28,6 +29,7 @@ func main() {
 	}
 
 	b.Config.Username = *username
+	b.Config.Password = *password
 
 	if *insecure {
 		b.TLSConfig.InsecureSkipVerify = true
