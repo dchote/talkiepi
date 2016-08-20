@@ -1,4 +1,4 @@
-package barnard
+package talkiepi
 
 import (
 	"github.com/layeh/barnard/uiterm"
@@ -30,14 +30,14 @@ func (ti TreeItem) TreeItemStyle(fg, bg uiterm.Attribute, active bool) (uiterm.A
 	return fg, bg
 }
 
-func (b *Barnard) TreeItemSelect(ui *uiterm.Ui, tree *uiterm.Tree, item uiterm.TreeItem) {
+func (b *Talkiepi) TreeItemSelect(ui *uiterm.Ui, tree *uiterm.Tree, item uiterm.TreeItem) {
 	treeItem := item.(TreeItem)
 	if treeItem.Channel != nil {
 		b.Client.Self.Move(treeItem.Channel)
 	}
 }
 
-func (b *Barnard) TreeItem(item uiterm.TreeItem) []uiterm.TreeItem {
+func (b *Talkiepi) TreeItem(item uiterm.TreeItem) []uiterm.TreeItem {
 	if b.Client == nil {
 		return nil
 	}

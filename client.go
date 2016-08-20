@@ -1,16 +1,15 @@
-package barnard
+package talkiepi
 
 import (
 	"fmt"
-	"net"
-	"os"
-
 	"github.com/layeh/gumble/gumble"
 	"github.com/layeh/gumble/gumbleopenal"
 	"github.com/layeh/gumble/gumbleutil"
+	"net"
+	"os"
 )
 
-func (b *Barnard) start() {
+func (b *Talkiepi) start() {
 	b.Config.Attach(gumbleutil.AutoBitrate)
 	b.Config.Attach(b)
 
@@ -31,9 +30,25 @@ func (b *Barnard) start() {
 	} else {
 		b.Stream = stream
 	}
+
+	if err := b.GPIO.Open(); err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+		os.Exit(1)
+	}
+
+	defer b.GPIO.Close()
+
+	b.GPIO.Output(18)
+	b.GPIO.Output(23)
+
+	// turn off leds for now
+	b.GPIO.Low(18)
+	b.GPIO.Low(23)
+
+	//b.GPIO.High(18)
 }
 
-func (b *Barnard) OnConnect(e *gumble.ConnectEvent) {
+func (b *Talkiepi) OnConnect(e *gumble.ConnectEvent) {
 	b.Client = e.Client
 
 	b.Ui.SetActive(uiViewInput)
@@ -45,9 +60,12 @@ func (b *Barnard) OnConnect(e *gumble.ConnectEvent) {
 	if e.WelcomeMessage != nil {
 		b.AddOutputLine(fmt.Sprintf("Welcome message: %s", esc(*e.WelcomeMessage)))
 	}
+
+	b.GPIO.High(18)
+
 }
 
-func (b *Barnard) OnDisconnect(e *gumble.DisconnectEvent) {
+func (b *Talkiepi) OnDisconnect(e *gumble.DisconnectEvent) {
 	var reason string
 	switch e.Type {
 	case gumble.DisconnectError:
@@ -58,28 +76,49 @@ func (b *Barnard) OnDisconnect(e *gumble.DisconnectEvent) {
 	} else {
 		b.AddOutputLine("Disconnected: " + reason)
 	}
+
 	b.UiTree.Rebuild()
 	b.Ui.Refresh()
+
+	/*
+		if err := rpio.Open(); err != nil {
+			return
+		}
+
+		defer rpio.Close()
+
+		ledConnectedPin.Output()
+		ledConnectedPin.Low()
+
+		rpio.Close()
+	*/
 }
 
-func (b *Barnard) OnTextMessage(e *gumble.TextMessageEvent) {
+func (b *Talkiepi) OnTextMessage(e *gumble.TextMessageEvent) {
 	b.AddOutputMessage(e.Sender, e.Message)
 }
 
-func (b *Barnard) OnUserChange(e *gumble.UserChangeEvent) {
+func (b *Talkiepi) OnUserChange(e *gumble.UserChangeEvent) {
 	if e.Type.Has(gumble.UserChangeChannel) && e.User == b.Client.Self {
 		b.UpdateInputStatus(fmt.Sprintf("To: %s", e.User.Channel.Name))
 	}
+	/*
+		if len(e.User.Channel.Users) > 0 {
+			ledParticipantsPin.High()
+		} else {
+			ledParticipantsPin.Low()
+		}
+	*/
 	b.UiTree.Rebuild()
 	b.Ui.Refresh()
 }
 
-func (b *Barnard) OnChannelChange(e *gumble.ChannelChangeEvent) {
+func (b *Talkiepi) OnChannelChange(e *gumble.ChannelChangeEvent) {
 	b.UiTree.Rebuild()
 	b.Ui.Refresh()
 }
 
-func (b *Barnard) OnPermissionDenied(e *gumble.PermissionDeniedEvent) {
+func (b *Talkiepi) OnPermissionDenied(e *gumble.PermissionDeniedEvent) {
 	var info string
 	switch e.Type {
 	case gumble.PermissionDeniedOther:
@@ -106,17 +145,17 @@ func (b *Barnard) OnPermissionDenied(e *gumble.PermissionDeniedEvent) {
 	b.AddOutputLine(fmt.Sprintf("Permission denied: %s", info))
 }
 
-func (b *Barnard) OnUserList(e *gumble.UserListEvent) {
+func (b *Talkiepi) OnUserList(e *gumble.UserListEvent) {
 }
 
-func (b *Barnard) OnACL(e *gumble.ACLEvent) {
+func (b *Talkiepi) OnACL(e *gumble.ACLEvent) {
 }
 
-func (b *Barnard) OnBanList(e *gumble.BanListEvent) {
+func (b *Talkiepi) OnBanList(e *gumble.BanListEvent) {
 }
 
-func (b *Barnard) OnContextActionChange(e *gumble.ContextActionChangeEvent) {
+func (b *Talkiepi) OnContextActionChange(e *gumble.ContextActionChangeEvent) {
 }
 
-func (b *Barnard) OnServerConfig(e *gumble.ServerConfigEvent) {
+func (b *Talkiepi) OnServerConfig(e *gumble.ServerConfigEvent) {
 }

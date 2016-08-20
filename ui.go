@@ -1,4 +1,4 @@
-package barnard
+package talkiepi
 
 import (
 	"fmt"
@@ -24,18 +24,18 @@ func esc(str string) string {
 	return sanitize.HTML(str)
 }
 
-func (b *Barnard) UpdateInputStatus(status string) {
+func (b *Talkiepi) UpdateInputStatus(status string) {
 	b.UiInputStatus.Text = status
 	b.UiTree.Rebuild()
 	b.Ui.Refresh()
 }
 
-func (b *Barnard) AddOutputLine(line string) {
+func (b *Talkiepi) AddOutputLine(line string) {
 	now := time.Now()
 	b.UiOutput.AddLine(fmt.Sprintf("[%02d:%02d:%02d] %s", now.Hour(), now.Minute(), now.Second(), line))
 }
 
-func (b *Barnard) AddOutputMessage(sender *gumble.User, message string) {
+func (b *Talkiepi) AddOutputMessage(sender *gumble.User, message string) {
 	if sender == nil {
 		b.AddOutputLine(message)
 	} else {
@@ -43,7 +43,7 @@ func (b *Barnard) AddOutputMessage(sender *gumble.User, message string) {
 	}
 }
 
-func (b *Barnard) OnVoiceToggle(ui *uiterm.Ui, key uiterm.Key) {
+func (b *Talkiepi) OnVoiceToggle(ui *uiterm.Ui, key uiterm.Key) {
 	if b.UiStatus.Text == "  Tx  " {
 		b.UiStatus.Text = " Idle "
 		b.UiStatus.Fg = uiterm.ColorBlack
@@ -58,32 +58,32 @@ func (b *Barnard) OnVoiceToggle(ui *uiterm.Ui, key uiterm.Key) {
 	ui.Refresh()
 }
 
-func (b *Barnard) OnQuitPress(ui *uiterm.Ui, key uiterm.Key) {
+func (b *Talkiepi) OnQuitPress(ui *uiterm.Ui, key uiterm.Key) {
 	b.Client.Disconnect()
 	b.Ui.Close()
 }
 
-func (b *Barnard) OnClearPress(ui *uiterm.Ui, key uiterm.Key) {
+func (b *Talkiepi) OnClearPress(ui *uiterm.Ui, key uiterm.Key) {
 	b.UiOutput.Clear()
 }
 
-func (b *Barnard) OnScrollOutputUp(ui *uiterm.Ui, key uiterm.Key) {
+func (b *Talkiepi) OnScrollOutputUp(ui *uiterm.Ui, key uiterm.Key) {
 	b.UiOutput.ScrollUp()
 }
 
-func (b *Barnard) OnScrollOutputDown(ui *uiterm.Ui, key uiterm.Key) {
+func (b *Talkiepi) OnScrollOutputDown(ui *uiterm.Ui, key uiterm.Key) {
 	b.UiOutput.ScrollDown()
 }
 
-func (b *Barnard) OnScrollOutputTop(ui *uiterm.Ui, key uiterm.Key) {
+func (b *Talkiepi) OnScrollOutputTop(ui *uiterm.Ui, key uiterm.Key) {
 	b.UiOutput.ScrollTop()
 }
 
-func (b *Barnard) OnScrollOutputBottom(ui *uiterm.Ui, key uiterm.Key) {
+func (b *Talkiepi) OnScrollOutputBottom(ui *uiterm.Ui, key uiterm.Key) {
 	b.UiOutput.ScrollBottom()
 }
 
-func (b *Barnard) OnFocusPress(ui *uiterm.Ui, key uiterm.Key) {
+func (b *Talkiepi) OnFocusPress(ui *uiterm.Ui, key uiterm.Key) {
 	active := b.Ui.Active()
 	if active == uiViewInput {
 		b.Ui.SetActive(uiViewTree)
@@ -92,7 +92,7 @@ func (b *Barnard) OnFocusPress(ui *uiterm.Ui, key uiterm.Key) {
 	}
 }
 
-func (b *Barnard) OnTextInput(ui *uiterm.Ui, textbox *uiterm.Textbox, text string) {
+func (b *Talkiepi) OnTextInput(ui *uiterm.Ui, textbox *uiterm.Textbox, text string) {
 	if text == "" {
 		return
 	}
@@ -102,7 +102,7 @@ func (b *Barnard) OnTextInput(ui *uiterm.Ui, textbox *uiterm.Textbox, text strin
 	}
 }
 
-func (b *Barnard) OnUiInitialize(ui *uiterm.Ui) {
+func (b *Talkiepi) OnUiInitialize(ui *uiterm.Ui) {
 	ui.Add(uiViewLogo, &uiterm.Label{
 		Text: " barnard ",
 		Fg:   uiterm.ColorWhite | uiterm.AttrBold,
@@ -160,7 +160,7 @@ func (b *Barnard) OnUiInitialize(ui *uiterm.Ui) {
 	b.start()
 }
 
-func (b *Barnard) OnUiResize(ui *uiterm.Ui, width, height int) {
+func (b *Talkiepi) OnUiResize(ui *uiterm.Ui, width, height int) {
 	ui.SetBounds(uiViewLogo, 0, 0, 9, 1)
 	ui.SetBounds(uiViewTop, 9, 0, width-6, 1)
 	ui.SetBounds(uiViewStatus, width-6, 0, width, 1)

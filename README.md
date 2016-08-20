@@ -1,9 +1,7 @@
-# barnard
+# talkiepi
 
-barnard is a terminal-based client for the [Mumble](http://mumble.info) voice
-chat software.
+talkiepi is a fork of [barnard](https://github.com/layeh/barnard) for the Raspberry Pi.  It is a headless capable Mumble client written in Go, adapted for walkie talkie style use on the Pi using GPIO pins for input and LED display.
 
-![Screenshot](https://i.imgur.com/B8ldT5k.png)
 
 ## Requirements
 
@@ -17,4 +15,5 @@ MPL 2.0
 
 ## Author
 
-Tim Cooper (<tim.cooper@layeh.com>)
+Barnard Author - Tim Cooper (<tim.cooper@layeh.com>)
+talkiepi Adaption - Daniel Chote

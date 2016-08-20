@@ -1,14 +1,15 @@
-package barnard
+package talkiepi
 
 import (
 	"crypto/tls"
 
+	"github.com/dchote/go-rpio"
 	"github.com/layeh/barnard/uiterm"
 	"github.com/layeh/gumble/gumble"
 	"github.com/layeh/gumble/gumbleopenal"
 )
 
-type Barnard struct {
+type Talkiepi struct {
 	Config *gumble.Config
 	Client *gumble.Client
 
@@ -16,6 +17,8 @@ type Barnard struct {
 	TLSConfig tls.Config
 
 	Stream *gumbleopenal.Stream
+
+	GPIO *rpio.GPIO
 
 	Ui            *uiterm.Ui
 	UiOutput      uiterm.Textview
