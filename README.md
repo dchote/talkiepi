@@ -41,4 +41,4 @@ MPL 2.0
 ## Author
 
 - Barnard Author - Tim Cooper (<tim.cooper@layeh.com>)
-- talkiepi Adaption - Daniel Chote
+- talkiepi Adaption - [Daniel Chote](https://github.com/dchote)
