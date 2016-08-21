@@ -3,10 +3,16 @@ package talkiepi
 import (
 	"crypto/tls"
 
-	"github.com/dchote/go-rpio"
+	"github.com/dchote/gpio"
 	"github.com/layeh/barnard/uiterm"
 	"github.com/layeh/gumble/gumble"
 	"github.com/layeh/gumble/gumbleopenal"
+)
+
+const (
+	OnlineLEDPin       uint = 18
+	ParticipantsLEDPin uint = 23
+	ButtonPin          uint = 24
 )
 
 type Talkiepi struct {
@@ -18,7 +24,10 @@ type Talkiepi struct {
 
 	Stream *gumbleopenal.Stream
 
-	GPIO *rpio.GPIO
+	onlineLED       gpio.Pin
+	participantsLED gpio.Pin
+	button          gpio.Pin
+	buttonState     uint
 
 	Ui            *uiterm.Ui
 	UiOutput      uiterm.Textview

@@ -2,16 +2,63 @@ package talkiepi
 
 import (
 	"fmt"
+	"net"
+	"os"
+	"time"
+
+	"github.com/dchote/gpio"
+	"github.com/stianeikeland/go-rpio"
+
 	"github.com/layeh/gumble/gumble"
 	"github.com/layeh/gumble/gumbleopenal"
 	"github.com/layeh/gumble/gumbleutil"
-	"net"
-	"os"
 )
 
 func (b *Talkiepi) start() {
 	b.Config.Attach(gumbleutil.AutoBitrate)
 	b.Config.Attach(b)
+
+	// we need to pull in rpio to pullup our button pin
+	if err := rpio.Open(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	buttonPinPullUp := rpio.Pin(ButtonPin)
+	buttonPinPullUp.PullUp()
+
+	rpio.Close()
+
+	// unfortunately the gpio watcher stuff doesnt work for me in this context, so we have to poll the button instead
+	b.button = gpio.NewInput(ButtonPin)
+	go func() {
+		for {
+			currentState, err := b.button.Read()
+
+			if currentState != b.buttonState && err == nil {
+				b.buttonState = currentState
+
+				if b.Stream != nil {
+					if b.buttonState == 1 {
+						b.AddOutputLine(fmt.Sprintf("Button is released"))
+						b.StatusStopVoiceSend()
+						b.Stream.StopSource()
+					} else {
+						b.AddOutputLine(fmt.Sprintf("Button is pressed"))
+						b.StatusStartVoiceSend()
+						b.Stream.StartSource()
+					}
+				}
+
+			}
+
+			time.Sleep(500 * time.Millisecond)
+		}
+	}()
+
+	// then we can do our gpio stuff
+	b.participantsLED = gpio.NewOutput(ParticipantsLEDPin, false)
+	b.onlineLED = gpio.NewOutput(OnlineLEDPin, false)
 
 	var err error
 	_, err = gumble.DialWithDialer(new(net.Dialer), b.Address, b.Config, &b.TLSConfig)
@@ -31,25 +78,12 @@ func (b *Talkiepi) start() {
 		b.Stream = stream
 	}
 
-	if err := b.GPIO.Open(); err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
-		os.Exit(1)
-	}
-
-	defer b.GPIO.Close()
-
-	b.GPIO.Output(18)
-	b.GPIO.Output(23)
-
-	// turn off leds for now
-	b.GPIO.Low(18)
-	b.GPIO.Low(23)
-
-	//b.GPIO.High(18)
 }
 
 func (b *Talkiepi) OnConnect(e *gumble.ConnectEvent) {
 	b.Client = e.Client
+
+	b.onlineLED.High()
 
 	b.Ui.SetActive(uiViewInput)
 	b.UiTree.Rebuild()
@@ -61,8 +95,6 @@ func (b *Talkiepi) OnConnect(e *gumble.ConnectEvent) {
 		b.AddOutputLine(fmt.Sprintf("Welcome message: %s", esc(*e.WelcomeMessage)))
 	}
 
-	b.GPIO.High(18)
-
 }
 
 func (b *Talkiepi) OnDisconnect(e *gumble.DisconnectEvent) {
@@ -71,6 +103,9 @@ func (b *Talkiepi) OnDisconnect(e *gumble.DisconnectEvent) {
 	case gumble.DisconnectError:
 		reason = "connection error"
 	}
+
+	b.onlineLED.Low()
+
 	if reason == "" {
 		b.AddOutputLine("Disconnected")
 	} else {
@@ -79,19 +114,6 @@ func (b *Talkiepi) OnDisconnect(e *gumble.DisconnectEvent) {
 
 	b.UiTree.Rebuild()
 	b.Ui.Refresh()
-
-	/*
-		if err := rpio.Open(); err != nil {
-			return
-		}
-
-		defer rpio.Close()
-
-		ledConnectedPin.Output()
-		ledConnectedPin.Low()
-
-		rpio.Close()
-	*/
 }
 
 func (b *Talkiepi) OnTextMessage(e *gumble.TextMessageEvent) {
@@ -102,13 +124,13 @@ func (b *Talkiepi) OnUserChange(e *gumble.UserChangeEvent) {
 	if e.Type.Has(gumble.UserChangeChannel) && e.User == b.Client.Self {
 		b.UpdateInputStatus(fmt.Sprintf("To: %s", e.User.Channel.Name))
 	}
-	/*
-		if len(e.User.Channel.Users) > 0 {
-			ledParticipantsPin.High()
-		} else {
-			ledParticipantsPin.Low()
-		}
-	*/
+
+	if len(e.User.Channel.Users) > 1 {
+		b.participantsLED.High()
+	} else {
+		b.participantsLED.Low()
+	}
+
 	b.UiTree.Rebuild()
 	b.Ui.Refresh()
 }

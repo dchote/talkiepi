@@ -4,7 +4,7 @@ import (
 	"crypto/tls"
 	"flag"
 	"fmt"
-	"github.com/dchote/go-rpio"
+
 	"github.com/dchote/talkiepi"
 	"github.com/layeh/barnard/uiterm"
 	"github.com/layeh/gumble/gumble"
@@ -28,8 +28,6 @@ func main() {
 		Address: *server,
 	}
 
-	b.GPIO = new(rpio.GPIO)
-
 	b.Config.Username = *username
 	b.Config.Password = *password
 
@@ -47,4 +45,5 @@ func main() {
 
 	b.Ui = uiterm.New(&b)
 	b.Ui.Run()
+
 }

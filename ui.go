@@ -2,12 +2,13 @@ package talkiepi
 
 import (
 	"fmt"
-	"strings"
-	"time"
 
 	"github.com/kennygrant/sanitize"
 	"github.com/layeh/barnard/uiterm"
 	"github.com/layeh/gumble/gumble"
+
+	"strings"
+	"time"
 )
 
 const (
@@ -45,17 +46,28 @@ func (b *Talkiepi) AddOutputMessage(sender *gumble.User, message string) {
 
 func (b *Talkiepi) OnVoiceToggle(ui *uiterm.Ui, key uiterm.Key) {
 	if b.UiStatus.Text == "  Tx  " {
-		b.UiStatus.Text = " Idle "
-		b.UiStatus.Fg = uiterm.ColorBlack
-		b.UiStatus.Bg = uiterm.ColorWhite
+		b.StatusStopVoiceSend()
 		b.Stream.StopSource()
 	} else {
-		b.UiStatus.Fg = uiterm.ColorWhite | uiterm.AttrBold
-		b.UiStatus.Bg = uiterm.ColorRed
-		b.UiStatus.Text = "  Tx  "
+		b.StatusStartVoiceSend()
 		b.Stream.StartSource()
 	}
-	ui.Refresh()
+}
+
+func (b *Talkiepi) StatusStartVoiceSend() {
+	b.UiStatus.Fg = uiterm.ColorWhite | uiterm.AttrBold
+	b.UiStatus.Bg = uiterm.ColorRed
+	b.UiStatus.Text = "  Tx  "
+
+	b.Ui.Refresh()
+}
+
+func (b *Talkiepi) StatusStopVoiceSend() {
+	b.UiStatus.Text = " Idle "
+	b.UiStatus.Fg = uiterm.ColorBlack
+	b.UiStatus.Bg = uiterm.ColorWhite
+
+	b.Ui.Refresh()
 }
 
 func (b *Talkiepi) OnQuitPress(ui *uiterm.Ui, key uiterm.Key) {
