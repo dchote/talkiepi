@@ -2,7 +2,7 @@
 
 talkiepi is a fork of [barnard](https://github.com/layeh/barnard) for the Raspberry Pi.  It is a headless capable Mumble client written in Go, adapted for walkie talkie style use on the Pi using GPIO pins for input and LED display.
 
-You can edit your pin assignments in talkiepi.go 
+You can edit your pin assignments in `talkiepi.go`
 ```go
 const (
 	OnlineLEDPin       uint = 18
