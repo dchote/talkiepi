@@ -9,6 +9,7 @@ import (
 	"github.com/layeh/gumble/gumbleopenal"
 )
 
+// Raspberry Pi GPIO pin assignments (CPU pin definitions)
 const (
 	OnlineLEDPin       uint = 18
 	ParticipantsLEDPin uint = 23
