@@ -15,10 +15,25 @@ There is an issue I am currently working on regarding openal's stopping and re-s
 
 
 ## Requirements
+Ensure you have the development packages for openal and libopus installed. On debian/raspbian you can do the following
+```
+apt-get install libopenal-dev libopus-dev
+```
 
-- [gumble](https://github.com/layeh/gumble/tree/master/gumble)
-- [gumbleopenal](https://github.com/layeh/gumble/tree/master/gumbleopenal)
+- [gumble](https://github.com/layeh/gumble)
+- [gopus](https://github.com/layeh/gopus)
 - [termbox-go](https://github.com/nsf/termbox-go)
+- [gpio](https://github.com/dchote/gpio)
+- [go-rpio](github.com/stianeikeland/go-rpio)
+
+## Using talkiepi
+I am using a cheap USB speakerphone (US Robotics). If you are using a USB speakerphone device, be sure to update your alsa config so that your system uses that instead of the built in audio on the raspberry pi. You can list your audio devices by running `aplay -l`, find the index of the device (likely 1) and then edit the alsa config (`/usr/share/alsa/alsa.conf`) and change the following
+```
+defaults.ctl.card 1
+defaults.pcm.card 1
+```
+Where 1 is the index you want to use.
+
 
 ## License
 
