@@ -20,7 +20,7 @@ Ensure you have the development packages for openal and libopus installed. On de
 apt-get install libopenal-dev libopus-dev
 ```
 
-- [gumble](https://github.com/layeh/gumble)
+- [gumble](https://github.com/dchote/gumble)
 - [gopus](https://github.com/layeh/gopus)
 - [termbox-go](https://github.com/nsf/termbox-go)
 - [gpio](https://github.com/dchote/gpio)
