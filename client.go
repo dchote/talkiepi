@@ -42,8 +42,8 @@ func (b *Talkiepi) start() {
 					if b.buttonState == 1 {
 						b.AddOutputLine(fmt.Sprintf("Button is released"))
 						b.StatusStopVoiceSend()
-						//b.Stream.StopSource()
-						b.ResetStream()
+						b.Stream.StopSource()
+						//b.ResetStream()
 					} else {
 						b.AddOutputLine(fmt.Sprintf("Button is pressed"))
 						b.StatusStartVoiceSend()
