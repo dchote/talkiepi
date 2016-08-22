@@ -47,7 +47,8 @@ func (b *Talkiepi) AddOutputMessage(sender *gumble.User, message string) {
 func (b *Talkiepi) OnVoiceToggle(ui *uiterm.Ui, key uiterm.Key) {
 	if b.UiStatus.Text == "  Tx  " {
 		b.StatusStopVoiceSend()
-		b.Stream.StopSource()
+		//b.Stream.StopSource()
+		b.ResetStream()
 	} else {
 		b.StatusStartVoiceSend()
 		b.Stream.StartSource()

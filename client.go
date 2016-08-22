@@ -42,7 +42,8 @@ func (b *Talkiepi) start() {
 					if b.buttonState == 1 {
 						b.AddOutputLine(fmt.Sprintf("Button is released"))
 						b.StatusStopVoiceSend()
-						b.Stream.StopSource()
+						//b.Stream.StopSource()
+						b.ResetStream()
 					} else {
 						b.AddOutputLine(fmt.Sprintf("Button is pressed"))
 						b.StatusStartVoiceSend()
@@ -67,6 +68,10 @@ func (b *Talkiepi) start() {
 		os.Exit(1)
 	}
 
+	b.OpenStream()
+}
+
+func (b *Talkiepi) OpenStream() {
 	// Audio
 	if os.Getenv("ALSOFT_LOGLEVEL") == "" {
 		os.Setenv("ALSOFT_LOGLEVEL", "0")
@@ -77,7 +82,14 @@ func (b *Talkiepi) start() {
 	} else {
 		b.Stream = stream
 	}
+}
 
+func (b *Talkiepi) ResetStream() {
+	b.Stream.Destroy()
+
+	time.Sleep(50 * time.Millisecond)
+
+	b.OpenStream()
 }
 
 func (b *Talkiepi) OnConnect(e *gumble.ConnectEvent) {
