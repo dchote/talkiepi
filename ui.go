@@ -3,9 +3,9 @@ package talkiepi
 import (
 	"fmt"
 
+	"github.com/dchote/gumble/gumble"
 	"github.com/kennygrant/sanitize"
 	"github.com/layeh/barnard/uiterm"
-	"github.com/layeh/gumble/gumble"
 
 	"strings"
 	"time"

@@ -1,8 +1,8 @@
 package talkiepi
 
 import (
+	"github.com/dchote/gumble/gumble"
 	"github.com/layeh/barnard/uiterm"
-	"github.com/layeh/gumble/gumble"
 )
 
 type TreeItem struct {

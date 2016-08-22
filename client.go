@@ -9,9 +9,9 @@ import (
 	"github.com/dchote/gpio"
 	"github.com/stianeikeland/go-rpio"
 
-	"github.com/layeh/gumble/gumble"
-	"github.com/layeh/gumble/gumbleopenal"
-	"github.com/layeh/gumble/gumbleutil"
+	"github.com/dchote/gumble/gumble"
+	"github.com/dchote/gumble/gumbleopenal"
+	"github.com/dchote/gumble/gumbleutil"
 )
 
 func (b *Talkiepi) start() {

@@ -5,10 +5,10 @@ import (
 	"flag"
 	"fmt"
 
+	"github.com/dchote/gumble/gumble"
+	_ "github.com/dchote/gumble/opus"
 	"github.com/dchote/talkiepi"
 	"github.com/layeh/barnard/uiterm"
-	"github.com/layeh/gumble/gumble"
-	_ "github.com/layeh/gumble/opus"
 	"os"
 )
 
