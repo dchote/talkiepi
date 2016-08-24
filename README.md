@@ -7,7 +7,8 @@ You can edit your pin assignments in `talkiepi.go`
 const (
 	OnlineLEDPin       uint = 18
 	ParticipantsLEDPin uint = 23
-	ButtonPin          uint = 24
+	TransmitLEDPin     uint = 24
+	ButtonPin          uint = 25
 )
 ```
 
