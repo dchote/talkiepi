@@ -13,7 +13,8 @@ import (
 const (
 	OnlineLEDPin       uint = 18
 	ParticipantsLEDPin uint = 23
-	ButtonPin          uint = 24
+	TransmitLEDPin     uint = 24
+	ButtonPin          uint = 25
 )
 
 type Talkiepi struct {
@@ -25,8 +26,12 @@ type Talkiepi struct {
 
 	Stream *gumbleopenal.Stream
 
+	transmitting bool
+
+	GPIOEnabled     bool
 	onlineLED       gpio.Pin
 	participantsLED gpio.Pin
+	transmitLED     gpio.Pin
 	button          gpio.Pin
 	buttonState     uint
 

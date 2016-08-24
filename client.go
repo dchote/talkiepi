@@ -6,9 +6,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/dchote/gpio"
-	"github.com/stianeikeland/go-rpio"
-
 	"github.com/dchote/gumble/gumble"
 	"github.com/dchote/gumble/gumbleopenal"
 	"github.com/dchote/gumble/gumbleutil"
@@ -18,48 +15,7 @@ func (b *Talkiepi) start() {
 	b.Config.Attach(gumbleutil.AutoBitrate)
 	b.Config.Attach(b)
 
-	// we need to pull in rpio to pullup our button pin
-	if err := rpio.Open(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	buttonPinPullUp := rpio.Pin(ButtonPin)
-	buttonPinPullUp.PullUp()
-
-	rpio.Close()
-
-	// unfortunately the gpio watcher stuff doesnt work for me in this context, so we have to poll the button instead
-	b.button = gpio.NewInput(ButtonPin)
-	go func() {
-		for {
-			currentState, err := b.button.Read()
-
-			if currentState != b.buttonState && err == nil {
-				b.buttonState = currentState
-
-				if b.Stream != nil {
-					if b.buttonState == 1 {
-						b.AddOutputLine(fmt.Sprintf("Button is released"))
-						b.StatusStopVoiceSend()
-						b.Stream.StopSource()
-						//b.ResetStream()
-					} else {
-						b.AddOutputLine(fmt.Sprintf("Button is pressed"))
-						b.StatusStartVoiceSend()
-						b.Stream.StartSource()
-					}
-				}
-
-			}
-
-			time.Sleep(500 * time.Millisecond)
-		}
-	}()
-
-	// then we can do our gpio stuff
-	b.participantsLED = gpio.NewOutput(ParticipantsLEDPin, false)
-	b.onlineLED = gpio.NewOutput(OnlineLEDPin, false)
+	b.initGPIO()
 
 	var err error
 	_, err = gumble.DialWithDialer(new(net.Dialer), b.Address, b.Config, &b.TLSConfig)
@@ -92,10 +48,28 @@ func (b *Talkiepi) ResetStream() {
 	b.OpenStream()
 }
 
+func (b *Talkiepi) TransmitStart() {
+	b.transmitting = true
+
+	b.LEDOn(b.transmitLED)
+
+	b.StatusStartVoiceSend()
+	b.Stream.StartSource()
+}
+
+func (b *Talkiepi) TransmitStop() {
+	b.StatusStopVoiceSend()
+	b.Stream.StopSource()
+
+	b.LEDOff(b.transmitLED)
+
+	b.transmitting = false
+}
+
 func (b *Talkiepi) OnConnect(e *gumble.ConnectEvent) {
 	b.Client = e.Client
 
-	b.onlineLED.High()
+	b.LEDOn(b.onlineLED)
 
 	b.Ui.SetActive(uiViewInput)
 	b.UiTree.Rebuild()
@@ -116,7 +90,7 @@ func (b *Talkiepi) OnDisconnect(e *gumble.DisconnectEvent) {
 		reason = "connection error"
 	}
 
-	b.onlineLED.Low()
+	b.LEDOff(b.onlineLED)
 
 	if reason == "" {
 		b.AddOutputLine("Disconnected")
@@ -138,9 +112,9 @@ func (b *Talkiepi) OnUserChange(e *gumble.UserChangeEvent) {
 	}
 
 	if len(e.User.Channel.Users) > 1 {
-		b.participantsLED.High()
+		b.LEDOn(b.participantsLED)
 	} else {
-		b.participantsLED.Low()
+		b.LEDOff(b.participantsLED)
 	}
 
 	b.UiTree.Rebuild()
