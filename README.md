@@ -11,8 +11,6 @@ const (
 )
 ```
 
-There is an issue I am currently working on regarding openal's stopping and re-starting of an audio stream, which basically leaves this very broken right now until this bug is tracked down and fixed.
-
 
 ## Requirements
 Ensure you have the development packages for openal and libopus installed. On debian/raspbian you can do the following
