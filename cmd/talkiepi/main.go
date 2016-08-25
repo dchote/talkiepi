@@ -19,13 +19,15 @@ func main() {
 	password := flag.String("password", "", "the password of the server")
 	insecure := flag.Bool("insecure", true, "skip server certificate verification")
 	certificate := flag.String("certificate", "", "PEM encoded certificate and private key")
+	channel := flag.String("channel", "talkiepi", "mumble channel to join by default")
 
 	flag.Parse()
 
 	// Initialize
 	b := talkiepi.Talkiepi{
-		Config:  gumble.NewConfig(),
-		Address: *server,
+		Config:      gumble.NewConfig(),
+		Address:     *server,
+		ChannelName: *channel,
 	}
 
 	b.Config.Username = *username

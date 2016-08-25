@@ -26,6 +26,7 @@ type Talkiepi struct {
 
 	Stream *gumbleopenal.Stream
 
+	ChannelName  string
 	transmitting bool
 
 	GPIOEnabled     bool
