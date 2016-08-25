@@ -33,6 +33,8 @@ defaults.pcm.card 1
 ```
 _1 being the index of your device_
 
+If you are not familiar with golang, please follow the instructions over on my blog [projectable.me](http://projectable.me/building-an-internet-walkie-talkie-using-a-raspberry-pi-v3/)
+
 ## License
 
 MPL 2.0
