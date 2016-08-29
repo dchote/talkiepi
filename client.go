@@ -20,8 +20,12 @@ func (b *Talkiepi) start() {
 	var err error
 	_, err = gumble.DialWithDialer(new(net.Dialer), b.Address, b.Config, &b.TLSConfig)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
-		os.Exit(1)
+		go func() {
+			b.AddOutputLine("Connection to %s failed, attempting again in 10 seconds...", b.Address)
+			time.Sleep(10 * time.Second)
+			b.start()
+		}()
+		return
 	}
 
 	b.OpenStream()
@@ -32,6 +36,7 @@ func (b *Talkiepi) OpenStream() {
 	if os.Getenv("ALSOFT_LOGLEVEL") == "" {
 		os.Setenv("ALSOFT_LOGLEVEL", "0")
 	}
+
 	if stream, err := gumbleopenal.New(b.Client); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
@@ -43,6 +48,7 @@ func (b *Talkiepi) OpenStream() {
 func (b *Talkiepi) ResetStream() {
 	b.Stream.Destroy()
 
+	// Sleep a bit and re-open
 	time.Sleep(50 * time.Millisecond)
 
 	b.OpenStream()
@@ -51,6 +57,7 @@ func (b *Talkiepi) ResetStream() {
 func (b *Talkiepi) TransmitStart() {
 	b.transmitting = true
 
+	// turn on our transmit LED
 	b.LEDOn(b.transmitLED)
 
 	b.StatusStartVoiceSend()
@@ -69,11 +76,10 @@ func (b *Talkiepi) TransmitStop() {
 func (b *Talkiepi) OnConnect(e *gumble.ConnectEvent) {
 	b.Client = e.Client
 
+	// turn on our online LED
 	b.LEDOn(b.onlineLED)
 
 	b.Ui.SetActive(uiViewInput)
-	b.UiTree.Rebuild()
-	b.Ui.Refresh()
 
 	b.UpdateInputStatus(fmt.Sprintf("To: %s", e.Client.Self.Channel.Name))
 	b.AddOutputLine(fmt.Sprintf("Connected to %s", b.Client.Conn.RemoteAddr()))
@@ -84,6 +90,9 @@ func (b *Talkiepi) OnConnect(e *gumble.ConnectEvent) {
 	if b.ChannelName != "" {
 		b.ChangeChannel(b.ChannelName)
 	}
+
+	b.UiTree.Rebuild()
+	b.Ui.Refresh()
 }
 
 func (b *Talkiepi) OnDisconnect(e *gumble.DisconnectEvent) {
@@ -93,6 +102,7 @@ func (b *Talkiepi) OnDisconnect(e *gumble.DisconnectEvent) {
 		reason = "connection error"
 	}
 
+	// turn off our online LED
 	b.LEDOff(b.onlineLED)
 
 	if reason == "" {
@@ -103,6 +113,12 @@ func (b *Talkiepi) OnDisconnect(e *gumble.DisconnectEvent) {
 
 	b.UiTree.Rebuild()
 	b.Ui.Refresh()
+
+	go func() {
+		b.AddOutputLine("Attempting reconnect in 10 seconds")
+		time.Sleep(10 * time.Second)
+		b.start()
+	}()
 }
 
 func (b *Talkiepi) ChangeChannel(ChannelName string) {
@@ -123,6 +139,7 @@ func (b *Talkiepi) OnUserChange(e *gumble.UserChangeEvent) {
 		b.UpdateInputStatus(fmt.Sprintf("To: %s", e.User.Channel.Name))
 	}
 
+	// If we have more than just ourselves in the channel, turn on the participants LED, otherwise, turn it off
 	if len(e.User.Channel.Users) > 1 {
 		b.LEDOn(b.participantsLED)
 	} else {

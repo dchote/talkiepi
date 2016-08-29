@@ -113,7 +113,7 @@ func (b *Talkiepi) OnTextInput(ui *uiterm.Ui, textbox *uiterm.Textbox, text stri
 
 func (b *Talkiepi) OnUiInitialize(ui *uiterm.Ui) {
 	ui.Add(uiViewLogo, &uiterm.Label{
-		Text: " barnard ",
+		Text: " talkiepi ",
 		Fg:   uiterm.ColorWhite | uiterm.AttrBold,
 		Bg:   uiterm.ColorMagenta,
 	})
@@ -170,8 +170,8 @@ func (b *Talkiepi) OnUiInitialize(ui *uiterm.Ui) {
 }
 
 func (b *Talkiepi) OnUiResize(ui *uiterm.Ui, width, height int) {
-	ui.SetBounds(uiViewLogo, 0, 0, 9, 1)
-	ui.SetBounds(uiViewTop, 9, 0, width-6, 1)
+	ui.SetBounds(uiViewLogo, 0, 0, 10, 1)
+	ui.SetBounds(uiViewTop, 10, 0, width-6, 1)
 	ui.SetBounds(uiViewStatus, width-6, 0, width, 1)
 	ui.SetBounds(uiViewInput, 0, height-1, width, height)
 	ui.SetBounds(uiViewInputStatus, 0, height-2, width, height-1)
