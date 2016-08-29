@@ -17,18 +17,37 @@ func (b *Talkiepi) start() {
 
 	b.initGPIO()
 
+	b.Connect()
+}
+
+func (b *Talkiepi) Connect() {
 	var err error
+	b.ConnectAttempts++
+
 	_, err = gumble.DialWithDialer(new(net.Dialer), b.Address, b.Config, &b.TLSConfig)
 	if err != nil {
-		go func() {
-			b.AddOutputLine("Connection to %s failed, attempting again in 10 seconds...", b.Address)
-			time.Sleep(10 * time.Second)
-			b.start()
-		}()
-		return
+		b.ReConnect()
+	} else {
+		b.OpenStream()
+	}
+}
+
+func (b *Talkiepi) ReConnect() {
+	if b.Client != nil {
+		b.Client.Disconnect()
 	}
 
-	b.OpenStream()
+	if b.ConnectAttempts < 5 {
+		go func() {
+			b.AddOutputLine(fmt.Sprintf("Connection to %s failed, attempting again in 10 seconds...", b.Address))
+			time.Sleep(10 * time.Second)
+			b.Connect()
+		}()
+		return
+	} else {
+		fmt.Fprintf(os.Stderr, "Giving up")
+		os.Exit(1)
+	}
 }
 
 func (b *Talkiepi) OpenStream() {
@@ -82,7 +101,7 @@ func (b *Talkiepi) OnConnect(e *gumble.ConnectEvent) {
 	b.Ui.SetActive(uiViewInput)
 
 	b.UpdateInputStatus(fmt.Sprintf("To: %s", e.Client.Self.Channel.Name))
-	b.AddOutputLine(fmt.Sprintf("Connected to %s", b.Client.Conn.RemoteAddr()))
+	b.AddOutputLine(fmt.Sprintf("Connected to %s (%d)", b.Client.Conn.RemoteAddr(), b.ConnectAttempts))
 	if e.WelcomeMessage != nil {
 		b.AddOutputLine(fmt.Sprintf("Welcome message: %s", esc(*e.WelcomeMessage)))
 	}
@@ -114,11 +133,8 @@ func (b *Talkiepi) OnDisconnect(e *gumble.DisconnectEvent) {
 	b.UiTree.Rebuild()
 	b.Ui.Refresh()
 
-	go func() {
-		b.AddOutputLine("Attempting reconnect in 10 seconds")
-		time.Sleep(10 * time.Second)
-		b.start()
-	}()
+	// attempt to connect again
+	b.ReConnect()
 }
 
 func (b *Talkiepi) ChangeChannel(ChannelName string) {

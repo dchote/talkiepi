@@ -24,6 +24,8 @@ type Talkiepi struct {
 	Address   string
 	TLSConfig tls.Config
 
+	ConnectAttempts uint
+
 	Stream *gumbleopenal.Stream
 
 	ChannelName  string
