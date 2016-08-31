@@ -4,20 +4,29 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/dchote/gumble/gumble"
 	"github.com/dchote/gumble/gumbleopenal"
 	"github.com/dchote/gumble/gumbleutil"
+	"github.com/kennygrant/sanitize"
 )
 
-func (b *Talkiepi) start() {
+func (b *Talkiepi) Init() {
 	b.Config.Attach(gumbleutil.AutoBitrate)
 	b.Config.Attach(b)
 
 	b.initGPIO()
 
 	b.Connect()
+
+	// our main run loop here... keep things alive
+	keepAlive := make(chan bool)
+	exitStatus := 0
+
+	<-keepAlive
+	os.Exit(exitStatus)
 }
 
 func (b *Talkiepi) Connect() {
@@ -26,6 +35,7 @@ func (b *Talkiepi) Connect() {
 
 	_, err = gumble.DialWithDialer(new(net.Dialer), b.Address, b.Config, &b.TLSConfig)
 	if err != nil {
+		fmt.Printf("Connection to %s failed (%s), attempting again in 10 seconds...\n", b.Address, err)
 		b.ReConnect()
 	} else {
 		b.OpenStream()
@@ -39,13 +49,12 @@ func (b *Talkiepi) ReConnect() {
 
 	if b.ConnectAttempts < 5 {
 		go func() {
-			b.AddOutputLine(fmt.Sprintf("Connection to %s failed, attempting again in 10 seconds...", b.Address))
 			time.Sleep(10 * time.Second)
 			b.Connect()
 		}()
 		return
 	} else {
-		fmt.Fprintf(os.Stderr, "Giving up")
+		fmt.Fprintf(os.Stderr, "Unable to connect, giving up\n")
 		os.Exit(1)
 	}
 }
@@ -57,7 +66,7 @@ func (b *Talkiepi) OpenStream() {
 	}
 
 	if stream, err := gumbleopenal.New(b.Client); err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
+		fmt.Fprintf(os.Stderr, "Stream open error (%s)\n", err)
 		os.Exit(1)
 	} else {
 		b.Stream = stream
@@ -74,44 +83,45 @@ func (b *Talkiepi) ResetStream() {
 }
 
 func (b *Talkiepi) TransmitStart() {
-	b.transmitting = true
+	if b.IsConnected == false {
+		return
+	}
+
+	b.IsTransmitting = true
 
 	// turn on our transmit LED
 	b.LEDOn(b.transmitLED)
 
-	b.StatusStartVoiceSend()
 	b.Stream.StartSource()
 }
 
 func (b *Talkiepi) TransmitStop() {
-	b.StatusStopVoiceSend()
+	if b.IsConnected == false {
+		return
+	}
+
 	b.Stream.StopSource()
 
 	b.LEDOff(b.transmitLED)
 
-	b.transmitting = false
+	b.IsTransmitting = false
 }
 
 func (b *Talkiepi) OnConnect(e *gumble.ConnectEvent) {
 	b.Client = e.Client
 
+	b.IsConnected = true
 	// turn on our online LED
 	b.LEDOn(b.onlineLED)
 
-	b.Ui.SetActive(uiViewInput)
-
-	b.UpdateInputStatus(fmt.Sprintf("To: %s", e.Client.Self.Channel.Name))
-	b.AddOutputLine(fmt.Sprintf("Connected to %s (%d)", b.Client.Conn.RemoteAddr(), b.ConnectAttempts))
+	fmt.Printf("Connected to %s (%d)\n", b.Client.Conn.RemoteAddr(), b.ConnectAttempts)
 	if e.WelcomeMessage != nil {
-		b.AddOutputLine(fmt.Sprintf("Welcome message: %s", esc(*e.WelcomeMessage)))
+		fmt.Printf("Welcome message: %s\n", esc(*e.WelcomeMessage))
 	}
 
 	if b.ChannelName != "" {
 		b.ChangeChannel(b.ChannelName)
 	}
-
-	b.UiTree.Rebuild()
-	b.Ui.Refresh()
 }
 
 func (b *Talkiepi) OnDisconnect(e *gumble.DisconnectEvent) {
@@ -121,17 +131,18 @@ func (b *Talkiepi) OnDisconnect(e *gumble.DisconnectEvent) {
 		reason = "connection error"
 	}
 
-	// turn off our online LED
+	b.IsConnected = false
+
+	// turn off our LEDs
 	b.LEDOff(b.onlineLED)
+	b.LEDOff(b.participantsLED)
+	b.LEDOff(b.transmitLED)
 
 	if reason == "" {
-		b.AddOutputLine("Disconnected")
+		fmt.Printf("Connection to %s disconnected, attempting again in 10 seconds...\n", b.Address)
 	} else {
-		b.AddOutputLine("Disconnected: " + reason)
+		fmt.Printf("Connection to %s disconnected (%s), attempting again in 10 seconds...\n", b.Address, reason)
 	}
-
-	b.UiTree.Rebuild()
-	b.Ui.Refresh()
 
 	// attempt to connect again
 	b.ReConnect()
@@ -142,19 +153,15 @@ func (b *Talkiepi) ChangeChannel(ChannelName string) {
 	if channel != nil {
 		b.Client.Self.Move(channel)
 	} else {
-		b.AddOutputLine(fmt.Sprintf("Unable to find channel: %s", ChannelName))
+		fmt.Printf("Unable to find channel: %s\n", ChannelName)
 	}
 }
 
 func (b *Talkiepi) OnTextMessage(e *gumble.TextMessageEvent) {
-	b.AddOutputMessage(e.Sender, e.Message)
+	fmt.Printf("Message from %s: %s\n", e.Sender.Name, strings.TrimSpace(esc(e.Message)))
 }
 
 func (b *Talkiepi) OnUserChange(e *gumble.UserChangeEvent) {
-	if e.Type.Has(gumble.UserChangeChannel) && e.User == b.Client.Self {
-		b.UpdateInputStatus(fmt.Sprintf("To: %s", e.User.Channel.Name))
-	}
-
 	// If we have more than just ourselves in the channel, turn on the participants LED, otherwise, turn it off
 	if len(e.User.Channel.Users) > 1 {
 		b.LEDOn(b.participantsLED)
@@ -162,13 +169,33 @@ func (b *Talkiepi) OnUserChange(e *gumble.UserChangeEvent) {
 		b.LEDOff(b.participantsLED)
 	}
 
-	b.UiTree.Rebuild()
-	b.Ui.Refresh()
-}
+	var info string
 
-func (b *Talkiepi) OnChannelChange(e *gumble.ChannelChangeEvent) {
-	b.UiTree.Rebuild()
-	b.Ui.Refresh()
+	switch e.Type {
+	case gumble.UserChangeConnected:
+		info = "connected"
+	case gumble.UserChangeDisconnected:
+		info = "disconnected"
+	case gumble.UserChangeRegistered:
+		info = "registered"
+	case gumble.UserChangeUnregistered:
+		info = "unregistered"
+	case gumble.UserChangeName:
+		info = "changed name"
+	case gumble.UserChangeChannel:
+		info = "changed channel"
+	case gumble.UserChangeAudio:
+		info = "changed audio"
+	case gumble.UserChangePrioritySpeaker:
+		info = "is priority speaker"
+	case gumble.UserChangeRecording:
+		info = "changed recording status"
+	case gumble.UserChangeStats:
+		info = "changed stats"
+	}
+
+	fmt.Printf("Change event for %s: %s (%d)\n", e.User.Name, info, e.Type)
+
 }
 
 func (b *Talkiepi) OnPermissionDenied(e *gumble.PermissionDeniedEvent) {
@@ -195,7 +222,11 @@ func (b *Talkiepi) OnPermissionDenied(e *gumble.PermissionDeniedEvent) {
 	case gumble.PermissionDeniedNestingLimit:
 		info = "nesting limit"
 	}
-	b.AddOutputLine(fmt.Sprintf("Permission denied: %s", info))
+
+	fmt.Printf("Permission denied: %s\n", info)
+}
+
+func (b *Talkiepi) OnChannelChange(e *gumble.ChannelChangeEvent) {
 }
 
 func (b *Talkiepi) OnUserList(e *gumble.UserListEvent) {
@@ -211,4 +242,8 @@ func (b *Talkiepi) OnContextActionChange(e *gumble.ContextActionChangeEvent) {
 }
 
 func (b *Talkiepi) OnServerConfig(e *gumble.ServerConfigEvent) {
+}
+
+func esc(str string) string {
+	return sanitize.HTML(str)
 }

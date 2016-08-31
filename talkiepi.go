@@ -6,7 +6,6 @@ import (
 	"github.com/dchote/gpio"
 	"github.com/dchote/gumble/gumble"
 	"github.com/dchote/gumble/gumbleopenal"
-	"github.com/layeh/barnard/uiterm"
 )
 
 // Raspberry Pi GPIO pin assignments (CPU pin definitions)
@@ -28,8 +27,9 @@ type Talkiepi struct {
 
 	Stream *gumbleopenal.Stream
 
-	ChannelName  string
-	transmitting bool
+	ChannelName    string
+	IsConnected    bool
+	IsTransmitting bool
 
 	GPIOEnabled     bool
 	onlineLED       gpio.Pin
@@ -37,11 +37,4 @@ type Talkiepi struct {
 	transmitLED     gpio.Pin
 	button          gpio.Pin
 	buttonState     uint
-
-	Ui            *uiterm.Ui
-	UiOutput      uiterm.Textview
-	UiInput       uiterm.Textbox
-	UiStatus      uiterm.Label
-	UiTree        uiterm.Tree
-	UiInputStatus uiterm.Label
 }
