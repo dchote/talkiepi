@@ -12,6 +12,10 @@ const (
 )
 ```
 
+## 3D Print the enclosure
+In the stl directory are the stl files for the enclosure I have designed specifically for the Raspberry Pi B+ board layout and the PCB+Components from the [US Robotics USB Speakerphone](https://www.amazon.com/USRobotics-USB-Internet-Speakerphone-USR9610/dp/B000E6IL10/ref=sr_1_1?ie=UTF8&qid=1472691020&sr=8-1&keywords=us+robotics+speakerphone).
+I will be posting a blog post shortly with a full component list and build guide.
+
 
 ## Requirements
 Ensure you have the development packages for openal and libopus installed. On debian/raspbian you can do the following
