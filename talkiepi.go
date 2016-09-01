@@ -32,9 +32,9 @@ type Talkiepi struct {
 	IsTransmitting bool
 
 	GPIOEnabled     bool
-	onlineLED       gpio.Pin
-	participantsLED gpio.Pin
-	transmitLED     gpio.Pin
-	button          gpio.Pin
-	buttonState     uint
+	OnlineLED       gpio.Pin
+	ParticipantsLED gpio.Pin
+	TransmitLED     gpio.Pin
+	Button          gpio.Pin
+	ButtonState     uint
 }

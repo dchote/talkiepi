@@ -90,7 +90,7 @@ func (b *Talkiepi) TransmitStart() {
 	b.IsTransmitting = true
 
 	// turn on our transmit LED
-	b.LEDOn(b.transmitLED)
+	b.LEDOn(b.TransmitLED)
 
 	b.Stream.StartSource()
 }
@@ -102,7 +102,7 @@ func (b *Talkiepi) TransmitStop() {
 
 	b.Stream.StopSource()
 
-	b.LEDOff(b.transmitLED)
+	b.LEDOff(b.TransmitLED)
 
 	b.IsTransmitting = false
 }
@@ -112,7 +112,7 @@ func (b *Talkiepi) OnConnect(e *gumble.ConnectEvent) {
 
 	b.IsConnected = true
 	// turn on our online LED
-	b.LEDOn(b.onlineLED)
+	b.LEDOn(b.OnlineLED)
 
 	fmt.Printf("Connected to %s (%d)\n", b.Client.Conn.RemoteAddr(), b.ConnectAttempts)
 	if e.WelcomeMessage != nil {
@@ -134,9 +134,9 @@ func (b *Talkiepi) OnDisconnect(e *gumble.DisconnectEvent) {
 	b.IsConnected = false
 
 	// turn off our LEDs
-	b.LEDOff(b.onlineLED)
-	b.LEDOff(b.participantsLED)
-	b.LEDOff(b.transmitLED)
+	b.LEDOff(b.OnlineLED)
+	b.LEDOff(b.ParticipantsLED)
+	b.LEDOff(b.TransmitLED)
 
 	if reason == "" {
 		fmt.Printf("Connection to %s disconnected, attempting again in 10 seconds...\n", b.Address)
@@ -164,9 +164,9 @@ func (b *Talkiepi) OnTextMessage(e *gumble.TextMessageEvent) {
 func (b *Talkiepi) OnUserChange(e *gumble.UserChangeEvent) {
 	// If we have more than just ourselves in the channel, turn on the participants LED, otherwise, turn it off
 	if len(e.User.Channel.Users) > 1 {
-		b.LEDOn(b.participantsLED)
+		b.LEDOn(b.ParticipantsLED)
 	} else {
-		b.LEDOff(b.participantsLED)
+		b.LEDOff(b.ParticipantsLED)
 	}
 
 	var info string
