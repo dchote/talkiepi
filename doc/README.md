@@ -59,7 +59,7 @@ cd ~
 openssl genrsa -aes256 -out key.pem
 ```
 
-Enter a simple passphrase, its ok, we will remove it shortly
+Enter a simple passphrase, its ok, we will remove it shortly...
 
 ```
 openssl req -new -x509 -key key.pem -out cert.pem -days 1095
