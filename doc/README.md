@@ -3,6 +3,7 @@
 
 This is a simple overview to scratch install talkiepi on your Raspberry Pi, and have it start on boot. 
 This document assumes that you have raspbian-jessie-lite installed on your SD card, and that the distribution is up to date.
+This document also asumes that you have network/wifi connectivity on your Raspberry Pi already configured.
 
 By default talkiepi will run without any arguments, it will autogenerate a username and then connect to my mumble server.
 You can change this behavior by appending commandline arguments of `-server YOUR_SERVER_ADDRESS`, `-username YOUR_USERNAME` to the ExecStart line in `/etc/systemd/system/mumble.service` once installed.
