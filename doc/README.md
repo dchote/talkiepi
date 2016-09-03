@@ -33,6 +33,8 @@ mkdir ~/bin
 export GOPATH=/home/mumble/gocode
 export GOBIN=/home/mumble/bin
 
+cd $GOPATH
+
 go get github.com/layeh/gopus
 go get github.com/dchote/talkiepi
 
