@@ -11,9 +11,9 @@ In the stl directory are the stl files for the enclosure I have designed specifi
 I will be posting a blog post shortly with a full component list and build guide.  For more information regarding building a full talkiepi device, go check out my blog at [projectable.me](http://projectable.me).
 
 
-## Using talkiepi
+## Installing talkiepi
 
-I have assembled a HOWTO guide [here](doc/README.md).
+I have put together an install guide [here](doc/README.md).
 
 
 ## GPIO
