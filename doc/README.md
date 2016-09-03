@@ -23,7 +23,7 @@ usermod -a -G cdrom,audio,video,plugdev,users,dialout,dip,input,gpio mumble
 
 As root on your Raspberry Pi (`sudo -i`), install golang and other required dependencies, then build talkiepi:
 ```
-apt-get install golang libopenal-dev libopus-dev
+apt-get install golang libopenal-dev libopus-dev git
 
 su mumble
 
