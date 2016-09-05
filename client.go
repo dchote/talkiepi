@@ -149,11 +149,25 @@ func (b *Talkiepi) OnDisconnect(e *gumble.DisconnectEvent) {
 }
 
 func (b *Talkiepi) ChangeChannel(ChannelName string) {
-	channel := b.Client.Self.Channel.Find(ChannelName)
+	channel := b.Client.Channels.Find(ChannelName)
 	if channel != nil {
 		b.Client.Self.Move(channel)
 	} else {
 		fmt.Printf("Unable to find channel: %s\n", ChannelName)
+	}
+}
+
+func (b *Talkiepi) ParticipantLEDUpdate() {
+	// If we have more than just ourselves in the channel, turn on the participants LED, otherwise, turn it off
+
+	var participantCount = len(b.Client.Self.Channel.Users)
+
+	if participantCount > 1 {
+		fmt.Printf("Channel has %d participants\n", participantCount)
+		b.LEDOn(b.ParticipantsLED)
+	} else {
+		fmt.Printf("Channel has no other participants\n")
+		b.LEDOff(b.ParticipantsLED)
 	}
 }
 
@@ -162,13 +176,6 @@ func (b *Talkiepi) OnTextMessage(e *gumble.TextMessageEvent) {
 }
 
 func (b *Talkiepi) OnUserChange(e *gumble.UserChangeEvent) {
-	// If we have more than just ourselves in the channel, turn on the participants LED, otherwise, turn it off
-	if len(e.User.Channel.Users) > 1 {
-		b.LEDOn(b.ParticipantsLED)
-	} else {
-		b.LEDOff(b.ParticipantsLED)
-	}
-
 	var info string
 
 	switch e.Type {
@@ -176,6 +183,10 @@ func (b *Talkiepi) OnUserChange(e *gumble.UserChangeEvent) {
 		info = "connected"
 	case gumble.UserChangeDisconnected:
 		info = "disconnected"
+	case gumble.UserChangeKicked:
+		info = "kicked"
+	case gumble.UserChangeBanned:
+		info = "banned"
 	case gumble.UserChangeRegistered:
 		info = "registered"
 	case gumble.UserChangeUnregistered:
@@ -184,6 +195,8 @@ func (b *Talkiepi) OnUserChange(e *gumble.UserChangeEvent) {
 		info = "changed name"
 	case gumble.UserChangeChannel:
 		info = "changed channel"
+	case gumble.UserChangeComment:
+		info = "changed comment"
 	case gumble.UserChangeAudio:
 		info = "changed audio"
 	case gumble.UserChangePrioritySpeaker:
@@ -196,6 +209,7 @@ func (b *Talkiepi) OnUserChange(e *gumble.UserChangeEvent) {
 
 	fmt.Printf("Change event for %s: %s (%d)\n", e.User.Name, info, e.Type)
 
+	go b.ParticipantLEDUpdate()
 }
 
 func (b *Talkiepi) OnPermissionDenied(e *gumble.PermissionDeniedEvent) {
