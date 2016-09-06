@@ -158,15 +158,17 @@ func (b *Talkiepi) ChangeChannel(ChannelName string) {
 }
 
 func (b *Talkiepi) ParticipantLEDUpdate() {
+	time.Sleep(100 * time.Millisecond)
+
 	// If we have more than just ourselves in the channel, turn on the participants LED, otherwise, turn it off
 
 	var participantCount = len(b.Client.Self.Channel.Users)
 
 	if participantCount > 1 {
-		fmt.Printf("Channel has %d participants\n", participantCount)
+		fmt.Printf("Channel '%s' has %d participants\n", b.Client.Self.Channel.Name, participantCount)
 		b.LEDOn(b.ParticipantsLED)
 	} else {
-		fmt.Printf("Channel has no other participants\n")
+		fmt.Printf("Channel '%s' has no other participants\n", b.Client.Self.Channel.Name)
 		b.LEDOff(b.ParticipantsLED)
 	}
 }
@@ -241,6 +243,7 @@ func (b *Talkiepi) OnPermissionDenied(e *gumble.PermissionDeniedEvent) {
 }
 
 func (b *Talkiepi) OnChannelChange(e *gumble.ChannelChangeEvent) {
+	go b.ParticipantLEDUpdate()
 }
 
 func (b *Talkiepi) OnUserList(e *gumble.UserListEvent) {
