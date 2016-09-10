@@ -80,7 +80,7 @@ Enter your password for the last time.
 cat nopasskey.pem cert.pem > mumble.pem
 ```
 
-Now edit `/etc/systemd/system/mumble.service` appending `-username USERNAME_TO_REGISTER -certificate /home/mumble/mumble.pem` at the end of `ExecStart = /home/mumble/bin/talkiepi`
+Now as root again (`sudo -i`), edit `/etc/systemd/system/mumble.service` appending `-username USERNAME_TO_REGISTER -certificate /home/mumble/mumble.pem` at the end of `ExecStart = /home/mumble/bin/talkiepi`
 
 Run `systemctl daemon-reload` and then `service mumble restart` and you should be set with a tls certificate!
 
