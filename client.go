@@ -47,7 +47,7 @@ func (b *Talkiepi) ReConnect() {
 		b.Client.Disconnect()
 	}
 
-	if b.ConnectAttempts < 5 {
+	if b.ConnectAttempts < 100 {
 		go func() {
 			time.Sleep(10 * time.Second)
 			b.Connect()
@@ -109,6 +109,8 @@ func (b *Talkiepi) TransmitStop() {
 
 func (b *Talkiepi) OnConnect(e *gumble.ConnectEvent) {
 	b.Client = e.Client
+
+	b.ConnectAttempts = 0
 
 	b.IsConnected = true
 	// turn on our online LED
