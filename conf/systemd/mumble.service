@@ -1,6 +1,7 @@
 [Unit]
 Description = Mumble Client  
-After = systemd-user-sessions.service network.target sound.target
+Requires = systemd-user-sessions.service network.target sound.target
+After = multi-user.target
 
 [Service]
 User = mumble  
@@ -9,6 +10,3 @@ Type = simple
 ExecStart = /home/mumble/bin/talkiepi
 Restart = on-abort  
 RestartSec = 5
-
-[Install]
-WantedBy = multi-user.target  
