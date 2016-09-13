@@ -43,6 +43,7 @@ cd $GOPATH/src/github.com/dchote/talkiepi
 go build -o /home/mumble/bin/talkiepi cmd/talkiepi/main.go 
 ```
 
+
 ## Start on boot
 
 As root on your Raspberry Pi (`sudo -i`), copy mumble.service in to place:
