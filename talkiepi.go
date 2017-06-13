@@ -16,6 +16,11 @@ const (
 	ButtonPin          uint = 25
 )
 
+type TalkieButton struct {
+	ButtonPin   gpio.Pin
+	ButtonState uint
+}
+
 type Talkiepi struct {
 	Config *gumble.Config
 	Client *gumble.Client
