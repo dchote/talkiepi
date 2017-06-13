@@ -18,30 +18,45 @@ func (b *Talkiepi) initGPIO() {
 		b.GPIOEnabled = true
 	}
 
-	ButtonPinPullUp := rpio.Pin(ButtonPin)
-	ButtonPinPullUp.PullUp()
+	TransmitButtonPinPullUp := rpio.Pin(TransmitButtonPin)
+	TransmitButtonPinPullUp.PullUp()
 
 	rpio.Close()
 
-	// unfortunately the gpio watcher stuff doesnt work for me in this context, so we have to poll the button instead
-	b.Button = gpio.NewInput(ButtonPin)
+
+	b.Buttons = []TalkieButton{
+		TalkieButton{
+			Pin: gpio.NewInput(TransmitButtonPin),
+			State: 1,
+			OnPress: func() {
+				fmt.Printf("Transmit is pressed\n")
+				b.TransmitStart()
+			},
+			OnRelease: func() {
+				fmt.Printf("Transmit is released\n")
+				b.TransmitStop()
+			},
+		},
+	}
+
+	// unfortunately the gpio watcher stuff doesnt work for me in this context, so we have to poll the buttons instead
 	go func() {
 		for {
-			currentState, err := b.Button.Read()
 
-			if currentState != b.ButtonState && err == nil {
-				b.ButtonState = currentState
+			for i := 0; i < len(b.Buttons); i++ {
+				currentState, err := b.Buttons[i].Pin.Read()
 
-				if b.Stream != nil {
-					if b.ButtonState == 1 {
-						fmt.Printf("Button is released\n")
-						b.TransmitStop()
-					} else {
-						fmt.Printf("Button is pressed\n")
-						b.TransmitStart()
+				if currentState != b.Buttons[i].State && err == nil {
+					b.Buttons[i].State = currentState
+
+					if b.Stream != nil {
+						if b.Buttons[i].State == 1 {
+							b.Buttons[i].OnRelease()
+						} else {
+							b.Buttons[i].OnPress()
+						}
 					}
 				}
-
 			}
 
 			time.Sleep(500 * time.Millisecond)
@@ -52,6 +67,8 @@ func (b *Talkiepi) initGPIO() {
 	b.OnlineLED = gpio.NewOutput(OnlineLEDPin, false)
 	b.ParticipantsLED = gpio.NewOutput(ParticipantsLEDPin, false)
 	b.TransmitLED = gpio.NewOutput(TransmitLEDPin, false)
+
+
 }
 
 func (b *Talkiepi) LEDOn(LED gpio.Pin) {

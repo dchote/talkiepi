@@ -13,12 +13,14 @@ const (
 	OnlineLEDPin       uint = 18
 	ParticipantsLEDPin uint = 23
 	TransmitLEDPin     uint = 24
-	ButtonPin          uint = 25
+	TransmitButtonPin  uint = 25
 )
 
 type TalkieButton struct {
-	ButtonPin   gpio.Pin
-	ButtonState uint
+	Pin    gpio.Pin
+	State  uint
+	OnPress func ()
+	OnRelease  func ()
 }
 
 type Talkiepi struct {
@@ -40,6 +42,6 @@ type Talkiepi struct {
 	OnlineLED       gpio.Pin
 	ParticipantsLED gpio.Pin
 	TransmitLED     gpio.Pin
-	Button          gpio.Pin
-	ButtonState     uint
+
+	Buttons		[]TalkieButton
 }
