@@ -16,6 +16,9 @@ const (
 	TransmitButtonPin   uint = 25
 	VolumeUpButtonPin   uint = 22
 	VolumeDownButtonPin uint = 27
+	MaxVolume						int = 90
+	MinVolume						int = 10
+	VolumeIncrement			int = 10
 )
 
 type TalkieButton struct {

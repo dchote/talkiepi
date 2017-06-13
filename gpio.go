@@ -48,6 +48,7 @@ func (b *Talkiepi) initGPIO() {
 			State: 1,
 			OnPress: func() {
 				fmt.Printf("Volume up is pressed\n")
+				b.IncreaseVolume(VolumeIncrement)
 			},
 			OnRelease: func() {
 				fmt.Printf("Volume up is released\n")
@@ -58,6 +59,7 @@ func (b *Talkiepi) initGPIO() {
 			State: 1,
 			OnPress: func() {
 				fmt.Printf("Volume down is pressed\n")
+				b.DecreaseVolume(VolumeIncrement)
 			},
 			OnRelease: func() {
 				fmt.Printf("Volume down is released\n")
