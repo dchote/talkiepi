@@ -10,10 +10,12 @@ import (
 
 // Raspberry Pi GPIO pin assignments (CPU pin definitions)
 const (
-	OnlineLEDPin       uint = 18
-	ParticipantsLEDPin uint = 23
-	TransmitLEDPin     uint = 24
-	TransmitButtonPin  uint = 25
+	OnlineLEDPin        uint = 18
+	ParticipantsLEDPin  uint = 23
+	TransmitLEDPin      uint = 24
+	TransmitButtonPin   uint = 25
+	VolumeUpButtonPin   uint = 22
+	VolumeDownButtonPin uint = 27
 )
 
 type TalkieButton struct {

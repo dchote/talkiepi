@@ -21,6 +21,12 @@ func (b *Talkiepi) initGPIO() {
 	TransmitButtonPinPullUp := rpio.Pin(TransmitButtonPin)
 	TransmitButtonPinPullUp.PullUp()
 
+	VolumeUpButtonPinPullUp := rpio.Pin(VolumeUpButtonPin)
+	VolumeUpButtonPinPullUp.PullUp()
+
+	VolumeDownButtonPinPullUp := rpio.Pin(VolumeDownButtonPin)
+	VolumeDownButtonPinPullUp.PullUp()
+
 	rpio.Close()
 
 
@@ -35,6 +41,26 @@ func (b *Talkiepi) initGPIO() {
 			OnRelease: func() {
 				fmt.Printf("Transmit is released\n")
 				b.TransmitStop()
+			},
+		},
+		TalkieButton{
+			Pin: gpio.NewInput(VolumeUpButtonPin),
+			State: 1,
+			OnPress: func() {
+				fmt.Printf("Volume up is pressed\n")
+			},
+			OnRelease: func() {
+				fmt.Printf("Volume up is released\n")
+			},
+		},
+		TalkieButton{
+			Pin: gpio.NewInput(VolumeDownButtonPin),
+			State: 1,
+			OnPress: func() {
+				fmt.Printf("Volume down is pressed\n")
+			},
+			OnRelease: func() {
+				fmt.Printf("Volume down is released\n")
 			},
 		},
 	}
