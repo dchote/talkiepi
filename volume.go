@@ -18,6 +18,8 @@ func(b *Talkiepi) DecreaseVolume(increment int) {
   changeVolume(strconv.Itoa(increment) + "%-")
 }
 
+//Volume changes are handled by adding or subtracting an increment (e.g. "amixer sset Master 10%+")
+//amixer will not allow changes beyond 0% or 100%, so we aren't doing any limiting ourselves
 func changeVolume(changeString string) {
   var err error
 
