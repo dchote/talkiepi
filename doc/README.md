@@ -113,5 +113,12 @@ amixer -c 1 set Headphone 60%
 ```
 _1 being the index of your device_
 
+## Install raspberry-wifi-conf
+
+In order to support SSH-free Wifi configuration, install this: https://github.com/WilliamLiska/raspberry-wifi-conf
+
+## Install supertalkie-buttons
+
+supertalkie-buttons is a python script that watches for miscellaneous button presses and runs scripts.  Currently it's configured to kick off raspberry-wifi-conf in ForceChange mode to 'reset' the Wifi settings.  Install it from https://github.com/WilliamLiska/supertalkie-buttons.
 
 I will be adding volume control settings in an upcoming push.
