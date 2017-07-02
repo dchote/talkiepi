@@ -115,7 +115,7 @@ _1 being the index of your device_
 
 ## Install raspberry-wifi-conf
 
-In order to support SSH-free Wifi configuration, install this: https://github.com/WilliamLiska/raspberry-wifi-conf
+In order to support SSH-free Wifi configuration and pushbutton Wifi reconfiguration, install this in /home/mumble/raspberry-wifi-conf: https://github.com/WilliamLiska/raspberry-wifi-conf
 
 ## Install supertalkie-buttons
 
