@@ -1,15 +1,16 @@
 # Boot to talkiepi
 ![assembled1](talkiepi_assembled_1.jpg "Assembled talkiepi 1")
 
-This is a simple overview to scratch install talkiepi on your Raspberry Pi, and have it start on boot. 
-This document assumes that you have raspbian-jessie-lite installed on your SD card, and that the distribution is up to date.
-This document also asumes that you have already configured network/wifi connectivity on your Raspberry Pi.
+This is a simple overview to scratch install talkiepi on your Raspberry Pi, and have it start on boot.  This guide assumes you are using a Raspberry Pi Zero W and the Plugable USB adapter (http://plugable.com/products/usb-audio/).
+
 
 By default talkiepi will run without any arguments, it will autogenerate a username and then connect to my mumble server.
 You can change this behavior by appending commandline arguments of `-server YOUR_SERVER_ADDRESS`, `-username YOUR_USERNAME` to the ExecStart line in `/etc/systemd/system/mumble.service` once installed.
 
 talkiepi will also accept arguments for `-password`, `-insecure`, `-certificate` and `-channel`, all defined in `cmd/talkiepi/main.go`, if you run your own mumble server, these will be self explanatory.
 
+## Flash Raspbian Jessie, set up wifi, etc.
+https://www.losant.com/blog/getting-started-with-the-raspberry-pi-zero-w-without-a-monitor
 
 ## Create a user
 
@@ -39,6 +40,9 @@ go get github.com/layeh/gopus
 go get github.com/dchote/talkiepi
 
 cd $GOPATH/src/github.com/dchote/talkiepi
+
+git remote add fork https://github.com/WilliamLiska/talkiepi.git
+git pull fork add-volume-controls
 
 go build -o /home/mumble/bin/talkiepi cmd/talkiepi/main.go 
 ```
