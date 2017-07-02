@@ -43,6 +43,7 @@ cd $GOPATH/src/github.com/dchote/talkiepi
 
 git remote add fork https://github.com/WilliamLiska/talkiepi.git
 git pull fork add-volume-controls
+git checkout add-volume-controls
 
 go build -o /home/mumble/bin/talkiepi cmd/talkiepi/main.go 
 ```
@@ -53,7 +54,12 @@ go build -o /home/mumble/bin/talkiepi cmd/talkiepi/main.go
 As root on your Raspberry Pi (`sudo -i`), copy mumble.service in to place:
 ```
 cp /home/mumble/gocode/src/github.com/dchote/talkiepi/conf/systemd/mumble.service /etc/systemd/system/mumble.service
+```
 
+Update /etc/systemd/system.mumble.service using `sudo nano /etc/systemd/system/mumble.service`, appending `-server [serverip:port] -username [username] -password [password]` to `ExecStart = /home/mumble/bin/talkiepi`
+
+Enable the service to run at boot:
+```
 systemctl enable mumble.service
 ```
 
@@ -107,5 +113,12 @@ amixer -c 1 set Headphone 60%
 ```
 _1 being the index of your device_
 
+## Install raspberry-wifi-conf
+
+In order to support SSH-free Wifi configuration, install this: https://github.com/WilliamLiska/raspberry-wifi-conf
+
+## Install supertalkie-buttons
+
+supertalkie-buttons is a python script that watches for miscellaneous button presses and runs scripts.  Currently it's configured to kick off raspberry-wifi-conf in ForceChange mode to 'reset' the Wifi settings.  Install it from https://github.com/WilliamLiska/supertalkie-buttons.
 
 I will be adding volume control settings in an upcoming push.
