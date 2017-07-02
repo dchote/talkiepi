@@ -43,6 +43,7 @@ cd $GOPATH/src/github.com/dchote/talkiepi
 
 git remote add fork https://github.com/WilliamLiska/talkiepi.git
 git pull fork add-volume-controls
+git checkout add-volume-controls
 
 go build -o /home/mumble/bin/talkiepi cmd/talkiepi/main.go 
 ```
@@ -53,7 +54,12 @@ go build -o /home/mumble/bin/talkiepi cmd/talkiepi/main.go
 As root on your Raspberry Pi (`sudo -i`), copy mumble.service in to place:
 ```
 cp /home/mumble/gocode/src/github.com/dchote/talkiepi/conf/systemd/mumble.service /etc/systemd/system/mumble.service
+```
 
+Update /etc/systemd/system.mumble.service using `sudo nano /etc/systemd/system/mumble.service`, appending `-server [serverip:port] -username [username] -password [password]` to `ExecStart = /home/mumble/bin/talkiepi`
+
+Enable the service to run at boot:
+```
 systemctl enable mumble.service
 ```
 
