@@ -10,11 +10,19 @@ import (
 
 // Raspberry Pi GPIO pin assignments (CPU pin definitions)
 const (
-	OnlineLEDPin       uint = 18
-	ParticipantsLEDPin uint = 23
-	TransmitLEDPin     uint = 24
-	ButtonPin          uint = 25
+	OnlineLEDPin        uint = 18
+	ParticipantsLEDPin  uint = 23
+	TransmitLEDPin      uint = 24
+	TransmitButtonPin   uint = 25
+	VolumeIncrement			int = 10
 )
+
+type TalkieButton struct {
+	Pin    gpio.Pin
+	State  uint
+	OnPress func ()
+	OnRelease  func ()
+}
 
 type Talkiepi struct {
 	Config *gumble.Config
@@ -35,6 +43,6 @@ type Talkiepi struct {
 	OnlineLED       gpio.Pin
 	ParticipantsLED gpio.Pin
 	TransmitLED     gpio.Pin
-	Button          gpio.Pin
-	ButtonState     uint
+
+	Buttons		[]TalkieButton
 }

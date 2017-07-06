@@ -1,14 +1,14 @@
 [Unit]
-Description = Mumble Client  
+Description = Mumble Client
 Requires = systemd-user-sessions.service network.target sound.target
 After = multi-user.target
 
 [Service]
-User = mumble  
-Group = mumble  
-Type = simple  
+User = mumble
+Group = mumble
+Type = simple
 ExecStart = /home/mumble/bin/talkiepi
-Restart = on-abort  
+Restart = on-failure  
 RestartSec = 5
 
 [Install]

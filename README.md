@@ -21,10 +21,10 @@ I have put together an install guide [here](doc/README.md).
 You can edit your pin assignments in `talkiepi.go`
 ```go
 const (
-	OnlineLEDPin       uint = 18
-	ParticipantsLEDPin uint = 23
-	TransmitLEDPin     uint = 24
-	ButtonPin          uint = 25
+	OnlineLEDPin        uint = 18
+	ParticipantsLEDPin  uint = 23
+	TransmitLEDPin      uint = 24
+	TransmitButtonPin   uint = 25
 )
 ```
 
