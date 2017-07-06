@@ -14,8 +14,6 @@ const (
 	ParticipantsLEDPin  uint = 23
 	TransmitLEDPin      uint = 24
 	TransmitButtonPin   uint = 25
-	VolumeUpButtonPin   uint = 22
-	VolumeDownButtonPin uint = 27
 	VolumeIncrement			int = 10
 )
 
