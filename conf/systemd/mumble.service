@@ -8,7 +8,7 @@ User = mumble
 Group = mumble  
 Type = simple  
 ExecStart = /home/mumble/bin/talkiepi
-Restart = on-abort  
+Restart = always 
 RestartSec = 5
 
 [Install]
