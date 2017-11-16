@@ -2,7 +2,7 @@
 ![assembled1](talkiepi_assembled_1.jpg "Assembled talkiepi 1")
 
 This is a simple overview to scratch install talkiepi on your Raspberry Pi, and have it start on boot. 
-This document assumes that you have raspbian-jessie-lite installed on your SD card, and that the distribution is up to date.
+This document assumes that you have raspbian-stretch-lite installed on your SD card, and that the distribution is up to date.
 This document also asumes that you have already configured network/wifi connectivity on your Raspberry Pi.
 
 By default talkiepi will run without any arguments, it will autogenerate a username and then connect to my mumble server.
