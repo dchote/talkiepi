@@ -33,6 +33,10 @@ Here is a basic schematic of how I am currently controlling the LEDs and pushbut
 ![schematic](doc/gpio_diagram.png "GPIO Diagram")
 
 
+## Pi Zero Fixes
+I have compiled libopus without ARM NEON support so that it works on the Pi Zero. The packages can be found in the [workarounds](/workarounds/). directory of this repo, install the libopus1 package over your existing libopus install.
+
+
 ## License
 
 MPL 2.0
