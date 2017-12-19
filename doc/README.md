@@ -105,4 +105,4 @@ _1 being the index of your device_
 
 
 ## Pi Zero Fixes
-I have compiled libopus without ARM NEON support so that it works on the Pi Zero. The packages can be found in the [workarounds](workarounds/). directory of this repo, install the libopus1 package over your existing libopus install.
+I have compiled libopus without ARM NEON support so that it works on the Pi Zero. The packages can be found in the [workarounds](/workarounds/). directory of this repo, install the libopus1 package over your existing libopus install.
