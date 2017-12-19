@@ -104,4 +104,5 @@ amixer -c 1 set Headphone 60%
 _1 being the index of your device_
 
 
-I will be adding volume control settings in an upcoming push.
+## Pi Zero Fixes
+I have compiled libopus without ARM NEON support so that it works on the Pi Zero. The packages can be found in the *workarounds* directory of this repo, install the libopus1 package over your existing libopus install.
