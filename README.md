@@ -34,7 +34,7 @@ Here is a basic schematic of how I am currently controlling the LEDs and pushbut
 
 
 ## Pi Zero Fixes
-I have compiled libopus without ARM NEON support so that it works on the Pi Zero. The packages can be found in the [workarounds](/workarounds/). directory of this repo, install the libopus1 package over your existing libopus install.
+I have compiled libopenal without ARM NEON support so that it works on the Pi Zero. The packages can be found in the [workarounds](/workarounds/). directory of this repo, install the libopenal1 package over your existing libopenal install.
 
 
 ## License
