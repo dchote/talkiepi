@@ -1,0 +1,108 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up QEMU (for arm64 container on amd64 runner)
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "yarn"
+          cache-dependency-path: frontend/yarn.lock
+
+      - name: Build frontend
+        run: |
+          cd frontend && yarn install --frozen-lockfile && yarn build && cd ..
+          rm -rf cmd/talkiepi/frontend-dist
+          cp -r frontend/dist cmd/talkiepi/frontend-dist
+
+      - name: Set tag and args
+        id: vars
+        run: |
+          if [ "${{ github.event_name }}" = "push" ] && [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+            echo "args=release --clean --skip=publish --parallelism 1" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=v0.0.0-${{ github.sha }}" >> "$GITHUB_OUTPUT"
+            echo "args=release --snapshot --skip=publish --clean --parallelism 1" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build linux/amd64 (goreleaser-cross)
+        run: |
+          docker run --rm --privileged --platform linux/amd64 \
+            --entrypoint bash \
+            -v ${{ github.workspace }}:/go/src/github.com/${{ github.repository }} \
+            -w /go/src/github.com/${{ github.repository }} \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -e CGO_ENABLED=1 \
+            -e GORELEASER_CURRENT_TAG="${{ steps.vars.outputs.tag }}" \
+            ghcr.io/goreleaser/goreleaser-cross:v1.25.9 \
+            -c "apt-get update && apt-get install -y pkg-config libopus-dev libspeexdsp-dev && goreleaser ${{ steps.vars.outputs.args }} -f .goreleaser-amd64.yaml"
+          mv dist dist-amd64
+
+      - name: Build linux/arm64 (goreleaser-cross)
+        run: |
+          docker run --rm --privileged --platform linux/arm64 \
+            --entrypoint bash \
+            -v ${{ github.workspace }}:/go/src/github.com/${{ github.repository }} \
+            -w /go/src/github.com/${{ github.repository }} \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -e CGO_ENABLED=1 \
+            -e GORELEASER_CURRENT_TAG="${{ steps.vars.outputs.tag }}" \
+            ghcr.io/goreleaser/goreleaser-cross:v1.25.9 \
+            -c "apt-get update && apt-get install -y pkg-config libopus-dev libspeexdsp-dev && goreleaser ${{ steps.vars.outputs.args }} -f .goreleaser-arm64.yaml"
+          mv dist dist-arm64
+
+      - name: Fix ownership of build artifacts
+        run: sudo chown -R $(id -u):$(id -g) dist-amd64 dist-arm64
+
+      - name: Merge dist outputs
+        run: |
+          mkdir -p dist
+          cp -r dist-amd64/* dist/
+          cp -r dist-arm64/* dist/
+          rm -rf dist-amd64 dist-arm64
+
+      - name: Prepare release assets (named by arch)
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        run: |
+          cp dist/talkiepi_linux_amd64_v1/talkiepi dist/talkiepi_linux_amd64
+          cp dist/talkiepi_linux_arm64_v8.0/talkiepi dist/talkiepi_linux_arm64
+
+      - name: Create release and upload artifacts
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            dist/*.deb
+            dist/talkiepi_linux_amd64
+            dist/talkiepi_linux_arm64
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload .deb artifacts (snapshot)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: deb-packages
+          path: dist/*.deb
