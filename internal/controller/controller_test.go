@@ -20,7 +20,7 @@ func TestStatusDefaults(t *testing.T) {
 	if st.Connected {
 		t.Fatal("should not be connected")
 	}
-	if st.Mode != "always_on" {
+	if st.Mode != "push_to_talk" {
 		t.Fatalf("mode=%s", st.Mode)
 	}
 }

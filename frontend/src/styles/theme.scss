@@ -52,7 +52,6 @@
 .standard-page-card .v-card-title,
 .standard-card .v-card-title,
 .standard-card-title {
-  color: #fff;
   font-weight: 600;
   display: flex !important;
   align-items: center !important;
@@ -60,8 +59,11 @@
   flex-wrap: nowrap;
 }
 
+/* Title text only — avoid forcing #fff onto chips/buttons in the header */
 .standard-page-card .v-card-title > .header-truncate,
-.standard-card .v-card-title > .header-truncate {
+.standard-card .v-card-title > .header-truncate,
+.standard-card-title > .header-truncate {
+  color: #fff;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -87,14 +89,18 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-.v-theme--dark .standard-page-card .v-card-title,
-.v-theme--dark .standard-card .v-card-title {
-  color: rgb(var(--v-theme-on-surface));
-}
-
 .v-theme--dark .standard-page-card > .v-card-title,
 .v-theme--dark .standard-card > .v-card-title {
   background: var(--brand-header-gradient-dark);
+}
+
+/* Outlined / tonal controls stay readable on dark surfaces */
+.v-theme--dark .v-btn--variant-outlined {
+  border-color: rgba(var(--v-theme-on-surface), 0.35);
+}
+
+.v-theme--dark .v-chip--variant-tonal {
+  --v-chip-opacity: 0.18;
 }
 
 .brand-section-card {

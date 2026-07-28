@@ -12,7 +12,9 @@ LDFLAGS="${LDFLAGS} -X main.commit=${COMMIT}"
 LDFLAGS="${LDFLAGS} -X main.buildTime=${BUILD_TIME}"
 
 SKIP_FRONTEND="${SKIP_FRONTEND:-false}"
-BUILD_TAGS=""
+# Always enable real Opus + SpeexDSP when CGO is available.
+# nolibopusfile: encode/decode only (no libopusfile).
+TAGS="opus,speexdsp,nolibopusfile"
 if [ "${SKIP_FRONTEND}" != "true" ] && [ "${SKIP_FRONTEND}" != "1" ] && [ -f frontend/package.json ]; then
     echo "Building frontend..."
     cd frontend && yarn build && cd ..
@@ -20,15 +22,15 @@ if [ "${SKIP_FRONTEND}" != "true" ] && [ "${SKIP_FRONTEND}" != "1" ] && [ -f fro
     echo "Copying frontend dist to embed location..."
     rm -rf cmd/talkiepi/frontend-dist
     cp -r frontend/dist cmd/talkiepi/frontend-dist
-    BUILD_TAGS="-tags embed_frontend"
+    TAGS="${TAGS},embed_frontend"
 elif [ -d "cmd/talkiepi/frontend-dist" ] && [ -n "$(ls -A cmd/talkiepi/frontend-dist 2>/dev/null)" ]; then
-    BUILD_TAGS="-tags embed_frontend"
+    TAGS="${TAGS},embed_frontend"
 fi
 
 mkdir -p build
 
-echo "Building talkiepi ${VERSION} (${COMMIT})..."
+echo "Building talkiepi ${VERSION} (${COMMIT}) tags=${TAGS}..."
 
-CGO_ENABLED=1 go build ${BUILD_TAGS} -ldflags "${LDFLAGS}" -o build/talkiepi ./cmd/talkiepi
+CGO_ENABLED=1 go build -tags "${TAGS}" -ldflags "${LDFLAGS}" -o build/talkiepi ./cmd/talkiepi
 
 echo "Done. Binary at build/talkiepi"

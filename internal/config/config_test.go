@@ -22,7 +22,7 @@ func TestLoadMissingUsesDefaults(t *testing.T) {
 	if cfg.Server.Port != 64738 {
 		t.Fatalf("port=%d", cfg.Server.Port)
 	}
-	if cfg.Voice.Mode != "always_on" {
+	if cfg.Voice.Mode != "push_to_talk" {
 		t.Fatalf("mode=%s", cfg.Voice.Mode)
 	}
 }

@@ -1,7 +1,6 @@
 package audio
 
 import (
-	"context"
 	"sync"
 
 	"github.com/dchote/talkiepi/internal/audio/process"
@@ -20,11 +19,12 @@ type SessionConfig struct {
 	Processing process.Config
 	Input      Descriptor
 	Output     Descriptor
+	// InputGain is a linear amplitude scale applied after processing (from gain_db).
+	InputGain float64
 }
 
-// Session owns the capture → process → VAD → encode path and the
-// decode → jitter → mix → playback path. Device I/O is provided by
-// CaptureSource / PlaybackSink implementations (malgo when built with -tags malgo).
+// Session owns capture → process → VAD → encode helpers and playback rings/mixer.
+// Device I/O is provided by DeviceIO (malgo when built with CGO).
 type Session struct {
 	cfg       SessionConfig
 	processor process.Processor
@@ -33,9 +33,9 @@ type Session struct {
 	playback  *Ring
 	mixer     *Mixer
 	sink      VoiceSink
+	inputGain float64
 
-	mu     sync.Mutex
-	cancel context.CancelFunc
+	mu sync.Mutex
 }
 
 // NewSession builds a session with rings, mixer, VAD, and processor.
@@ -48,6 +48,10 @@ func NewSession(cfg SessionConfig, sink VoiceSink) (*Session, error) {
 		return nil, err
 	}
 	frame := cfg.Profile.FrameSamples()
+	inGain := cfg.InputGain
+	if inGain <= 0 {
+		inGain = 1
+	}
 	return &Session{
 		cfg:       cfg,
 		processor: proc,
@@ -56,31 +60,52 @@ func NewSession(cfg SessionConfig, sink VoiceSink) (*Session, error) {
 		playback:  NewRing(frame * 50),
 		mixer:     NewMixer(frame),
 		sink:      sink,
+		inputGain: inGain,
 	}, nil
 }
 
 // ProcessCaptureFrame runs one mic frame through AEC/VAD and optionally sends Opus.
+// When allowTX is true, the VAD transmit gate is held open (PTT / always-on /
+// communicator open) so hangover does not end TX while the mode still allows it.
 // encode may be nil (tests); when non-nil it must return Opus bytes.
-func (s *Session) ProcessCaptureFrame(pcm []int16, encode func([]int16) ([]byte, error), allowTX bool) error {
+// speech reports whether the VAD classified the frame as speech.
+func (s *Session) ProcessCaptureFrame(pcm []int16, encode func([]int16) ([]byte, error), allowTX bool) (speech bool, err error) {
 	cleaned, err := s.processor.ProcessCapture(pcm)
 	if err != nil {
-		return err
+		return false, err
 	}
-	// Drain any ForceStop terminator before Process (which clears the flag).
-	forcedTerm := s.vad.TakeTerminator()
+	ApplyLinearGain(cleaned, s.inputGain)
+
+	// Deliver a pending terminator (e.g. PTT release) before re-opening the gate.
+	if forcedTerm := s.vad.TakeTerminator(); forcedTerm && s.sink != nil {
+		res := s.vad.Process(cleaned)
+		return res.Speech, s.sink.SendVoice(nil, true)
+	}
+
+	// Hold the gate open for the whole allowed TX window (industry PTT practice).
+	if allowTX {
+		s.vad.ForceTransmit()
+	}
+
 	res := s.vad.Process(cleaned)
-	if (res.SendTerminator || forcedTerm) && s.sink != nil {
-		return s.sink.SendVoice(nil, true)
+	if res.SendTerminator && s.sink != nil {
+		return res.Speech, s.sink.SendVoice(nil, true)
 	}
 	if !allowTX || !res.Transmit || encode == nil || s.sink == nil {
-		return nil
+		return res.Speech, nil
 	}
 	payload, err := encode(cleaned)
 	if err != nil {
-		return err
+		return res.Speech, err
 	}
-	return s.sink.SendVoice(payload, false)
+	return res.Speech, s.sink.SendVoice(payload, false)
 }
+
+// ForceTransmit opens the VAD transmit gate (PTT / always-on assist).
+func (s *Session) ForceTransmit() { s.vad.ForceTransmit() }
+
+// ForceStop closes the VAD transmit gate and queues a terminator.
+func (s *Session) ForceStop() { s.vad.ForceStop() }
 
 // FeedFarEnd provides AEC reference (pre-device mix).
 func (s *Session) FeedFarEnd(pcm []int16) error {
@@ -103,9 +128,5 @@ func (s *Session) ProcessorStats() process.Stats { return s.processor.Stats() }
 func (s *Session) Close() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if s.cancel != nil {
-		s.cancel()
-		s.cancel = nil
-	}
 	return s.processor.Close()
 }

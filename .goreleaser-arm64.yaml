@@ -23,6 +23,9 @@ builds:
     env:
       - CGO_ENABLED=1
     tags:
+      - opus
+      - speexdsp
+      - nolibopusfile
       - embed_frontend
     ldflags:
       - -s -w

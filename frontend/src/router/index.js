@@ -9,7 +9,13 @@ function getRouterBase() {
 
 const router = createRouter({
   history: createWebHistory(getRouterBase()),
-  routes: [...routes],
+  routes: [
+    ...routes,
+    { path: '/server', redirect: '/settings/server' },
+    { path: '/audio', redirect: '/settings/audio' },
+    { path: '/channels', redirect: '/' },
+    { path: '/chat', redirect: '/' },
+  ],
 })
 
 export default router

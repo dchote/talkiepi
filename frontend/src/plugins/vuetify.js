@@ -1,8 +1,10 @@
 import 'vuetify/styles'
+import '@mdi/font/css/materialdesignicons.css'
 import '@/styles/theme.scss'
 import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
+import { aliases, mdi } from 'vuetify/iconsets/mdi'
 
 const theme = {
   light: {
@@ -37,11 +39,17 @@ const theme = {
 
 const THEME_KEY = 'talkiepi:theme'
 const savedTheme = localStorage.getItem(THEME_KEY)
+// Match go-mumble-server: default dark content theme; chrome stays dark either way.
 const initialTheme = savedTheme === 'dark' || savedTheme === 'light' ? savedTheme : 'dark'
 
 export default createVuetify({
   components,
   directives,
+  icons: {
+    defaultSet: 'mdi',
+    aliases,
+    sets: { mdi },
+  },
   theme: {
     defaultTheme: initialTheme,
     themes: theme,

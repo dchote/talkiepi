@@ -26,13 +26,13 @@ func (s State) String() string {
 	case Idle:
 		return "Idle"
 	case OpenChime:
-		return "OpenChime"
+		return "Open Channel"
 	case MicActive:
 		return "MicActive"
 	case SilenceWindow:
 		return "SilenceWindow"
 	case CloseChime:
-		return "CloseChime"
+		return "Close Channel"
 	default:
 		return "Unknown"
 	}

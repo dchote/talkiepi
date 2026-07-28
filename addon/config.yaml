@@ -26,7 +26,7 @@ options:
   username: ""
   password: ""
   channel: Root
-  mode: always_on
+  mode: push_to_talk
   crypto: legacy
   speaker_volume: 65
   mic_gain_db: 0

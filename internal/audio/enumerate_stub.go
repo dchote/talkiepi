@@ -1,12 +1,11 @@
-//go:build !cgo || !malgo
+//go:build !cgo
 
 package audio
 
-// NewMalgoEnumerator returns a StaticEnumerator placeholder when malgo is not linked.
-// Build with -tags malgo (and CGO) for real device enumeration.
+// NewMalgoEnumerator returns a placeholder when CGO is disabled.
 func NewMalgoEnumerator() Enumerator {
 	return StaticEnumerator{
-		BackendList: PlatformBackends(),
+		BackendList: append([]string{BackendAuto}, PlatformBackends()...),
 		Capture: []DeviceInfo{{
 			Descriptor:  Descriptor{Backend: BackendDefault, DeviceID: "default", DeviceName: "Default Input"},
 			Name:        "Default Input",

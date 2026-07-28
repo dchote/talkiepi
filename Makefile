@@ -6,6 +6,9 @@ GORELEASER_IMAGE ?= ghcr.io/goreleaser/goreleaser-cross:v1.25.9
 
 GO_FILES = $(shell find . -name '*.go' -not -path './research/*' -not -path './frontend/node_modules/*')
 GO_PKGS = ./cmd/... ./internal/... ./pkg/...
+# Real Opus + SpeexDSP require CGO and these tags (stubs are used without them).
+# nolibopusfile avoids a libopusfile dependency (we only encode/decode PCM).
+GO_TAGS ?= opus,speexdsp,nolibopusfile
 
 fmt:
 	gofmt -w $(GO_FILES)
@@ -15,10 +18,10 @@ fmt-check:
 	if [ -n "$$unformatted" ]; then echo "gofmt needed for:"; echo "$$unformatted"; exit 1; fi
 
 vet:
-	go vet $(GO_PKGS)
+	CGO_ENABLED=1 go vet -tags $(GO_TAGS) $(GO_PKGS)
 
 test:
-	CGO_ENABLED=1 go test -race -timeout=60s $(GO_PKGS)
+	CGO_ENABLED=1 go test -tags $(GO_TAGS) -race -timeout=60s $(GO_PKGS)
 
 check: fmt-check vet test
 
@@ -30,8 +33,15 @@ frontend:
 build:
 	SKIP_FRONTEND=true ./scripts/build.sh
 
+# Serve API + prebuilt UI from frontend/dist on :8080.
+# Builds a binary first so Ctrl+C is handled by talkiepi (not go run/make noise).
+# For hot-reload UI: make run in one terminal, and `cd frontend && yarn dev` in another.
 run:
-	CGO_ENABLED=1 go run ./cmd/talkiepi -config configs/talkiepi.yaml -frontend-embed=false
+	@test -f frontend/dist/index.html || (echo "frontend/dist missing; building..." && $(MAKE) frontend)
+	CGO_ENABLED=1 go build -tags $(GO_TAGS) -o bin/talkiepi ./cmd/talkiepi
+	@# Ignore SIGINT in the recipe shell so make is not aborted with Error 1 while
+	@# talkiepi handles Ctrl+C and exits 0 after graceful shutdown.
+	@bash -c 'trap "" INT; ./bin/talkiepi -config configs/talkiepi.yaml -frontend-embed=false -frontend-dir=frontend/dist; exit $$?'
 
 build-deb: frontend
 	SKIP_FRONTEND=1 ./scripts/build-deb.sh

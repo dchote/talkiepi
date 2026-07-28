@@ -32,8 +32,19 @@ async function request(path, options = {}) {
   return res.text()
 }
 
+function withQuery(path, query) {
+  if (!query || typeof query !== 'object') return path
+  const params = new URLSearchParams()
+  for (const [key, value] of Object.entries(query)) {
+    if (value === undefined || value === null) continue
+    params.set(key, String(value))
+  }
+  const qs = params.toString()
+  return qs ? `${path}?${qs}` : path
+}
+
 const api = {
-  get: (path) => request(path, { method: 'GET' }),
+  get: (path, query) => request(withQuery(path, query), { method: 'GET' }),
   post: (path, body) => request(path, {
     method: 'POST',
     body: body === undefined ? undefined : JSON.stringify(body),

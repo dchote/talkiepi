@@ -6,6 +6,8 @@ import (
 )
 
 // PlatformBackends returns backends typically available on this OS.
+// The empty string (BackendAuto) is not included; callers that want an
+// "auto" choice should prepend it.
 func PlatformBackends() []string {
 	switch runtime.GOOS {
 	case "darwin":
@@ -14,6 +16,18 @@ func PlatformBackends() []string {
 		return []string{BackendPulse, BackendALSA, BackendJACK}
 	default:
 		return []string{BackendDefault}
+	}
+}
+
+// BackendLabels maps backend IDs to UI labels.
+func BackendLabels() map[string]string {
+	return map[string]string{
+		BackendAuto:      "Auto (system default)",
+		BackendDefault:   "Default",
+		BackendALSA:      "ALSA",
+		BackendPulse:     "PulseAudio",
+		BackendJACK:      "JACK",
+		BackendCoreAudio: "CoreAudio",
 	}
 }
 

@@ -10,10 +10,10 @@ talkiepi is a headless Mumble walkie-talkie client for Raspberry Pi (and Linux /
 - Opus encode/decode via libopus; system audio via miniaudio (ALSA / PulseAudio / CoreAudio)
 - Device enumeration and selection; SpeexDSP echo cancellation and noise suppression
 - Voice modes: always-on, push-to-talk, Communicator (half-duplex with chime)
-- Multi-source PTT: GPIO, REST, MQTT, keyboard (when configured)
+- Multi-source PTT: GPIO and REST today; MQTT / keyboard triggers are reserved config fields for a future broker client
 - Status LEDs (online / participants / transmit) on GPIO
 - Embedded Vue 3 + Vuetify 3 web UI and REST API (no auth; trusted LAN / HA ingress)
-- MQTT Home Assistant discovery entities aligned with esp32-mumble
+- MQTT Home Assistant **discovery payloads** aligned with esp32-mumble (in-process Mosquitto client not yet shipped — publish via an external bridge or future MQTT package)
 - GitHub release update checks
 - Debian `.deb` (amd64 + arm64) and Home Assistant add-on
 

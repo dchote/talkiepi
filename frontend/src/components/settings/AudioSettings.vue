@@ -1,6 +1,5 @@
 <template>
-  <v-container>
-    <StandardCard title="Audio Settings">
+  <div>
       <v-progress-linear v-if="loading" indeterminate class="mb-4" />
       <v-alert v-if="error" type="error" density="compact" variant="tonal" class="mb-4">
         {{ error }}
@@ -8,17 +7,36 @@
       <v-alert v-if="success" type="success" density="compact" variant="tonal" class="mb-4">
         Settings saved.
       </v-alert>
+      <v-alert
+        v-if="captureError"
+        type="warning"
+        density="compact"
+        variant="tonal"
+        class="mb-4"
+      >
+        Capture enumeration: {{ captureError }}
+      </v-alert>
+      <v-alert
+        v-if="playbackError"
+        type="warning"
+        density="compact"
+        variant="tonal"
+        class="mb-4"
+      >
+        Playback enumeration: {{ playbackError }}
+      </v-alert>
 
       <v-form v-if="!loading" @submit.prevent="save">
-        <h3 class="text-subtitle-1 font-weight-bold mb-3">Devices</h3>
+        <h3 class="text-subtitle-1 font-weight-bold mb-3">Microphone</h3>
         <v-select
           v-model="form.input_backend"
           :items="backends"
+          item-title="label"
+          item-value="id"
           label="Input backend"
           variant="outlined"
           density="compact"
           hide-details="auto"
-          clearable
           class="mb-4"
         />
         <v-select
@@ -30,17 +48,22 @@
           variant="outlined"
           density="compact"
           hide-details="auto"
-          clearable
+          :loading="refreshingCapture"
+          :disabled="refreshingCapture"
           class="mb-4"
+          @update:model-value="onCaptureDevicePicked"
         />
+
+        <h3 class="text-subtitle-1 font-weight-bold mb-3 mt-4">Speaker</h3>
         <v-select
           v-model="form.output_backend"
           :items="backends"
+          item-title="label"
+          item-value="id"
           label="Output backend"
           variant="outlined"
           density="compact"
           hide-details="auto"
-          clearable
           class="mb-4"
         />
         <v-select
@@ -52,8 +75,10 @@
           variant="outlined"
           density="compact"
           hide-details="auto"
-          clearable
+          :loading="refreshingPlayback"
+          :disabled="refreshingPlayback"
           class="mb-4"
+          @update:model-value="onPlaybackDevicePicked"
         />
         <v-text-field
           v-model.number="form.volume"
@@ -128,8 +153,8 @@
           <v-btn
             class="mr-2"
             variant="outlined"
-            :loading="refreshing"
-            @click="refreshDevices"
+            :loading="refreshingCapture || refreshingPlayback"
+            @click="refreshAllDevices"
           >
             Refresh devices
           </v-btn>
@@ -143,13 +168,11 @@
           </v-btn>
         </div>
       </v-form>
-    </StandardCard>
-  </v-container>
+  </div>
 </template>
 
 <script setup>
-import { inject, onMounted, ref } from 'vue'
-import StandardCard from '@/components/common/StandardCard.vue'
+import { inject, onMounted, ref, watch } from 'vue'
 import api from '@/utils/api'
 
 const notify = inject('notify', () => {})
@@ -157,8 +180,10 @@ const notify = inject('notify', () => {})
 const form = ref({
   input_backend: '',
   input_device_id: '',
+  input_device_name: '',
   output_backend: '',
   output_device_id: '',
+  output_device_name: '',
   volume: 65,
   gain_db: 0,
   processing_backend: 'speex',
@@ -175,19 +200,24 @@ const processingBackends = [
   { title: 'None', value: 'none' },
 ]
 
-const backends = ref(['default'])
+const backends = ref([{ id: '', label: 'Auto (system default)' }])
 const captureDevices = ref([{ id: '', label: 'System default' }])
 const playbackDevices = ref([{ id: '', label: 'System default' }])
+const captureRaw = ref([])
+const playbackRaw = ref([])
 const loading = ref(true)
 const saving = ref(false)
-const refreshing = ref(false)
+const refreshingCapture = ref(false)
+const refreshingPlayback = ref(false)
 const error = ref('')
+const captureError = ref('')
+const playbackError = ref('')
 const success = ref(false)
+const ready = ref(false)
 
 function deviceLabel(d) {
-  const name = d.name || d.Name || d.device_name || d.id || d.ID || 'Unknown'
-  const id = d.id || d.ID || d.device_id || ''
-  return id ? `${name} (${id})` : name
+  const name = d.name || d.device_name || 'Unknown'
+  return d.is_default ? `${name} (default)` : name
 }
 
 function normalizeDevices(list) {
@@ -195,30 +225,116 @@ function normalizeDevices(list) {
   return [
     { id: '', label: 'System default' },
     ...list.map((d) => ({
-      id: d.id || d.ID || d.device_id || '',
+      id: d.device_id || '',
       label: deviceLabel(d),
+      name: d.name || d.device_name || '',
     })),
   ]
 }
 
-async function refreshDevices() {
-  refreshing.value = true
+function ensureSelection(list, selectedId) {
+  if (!selectedId) return
+  if (list.some((d) => d.id === selectedId)) return
+  // Keep a stale selection visible so the user can see what was configured.
+  list.splice(1, 0, {
+    id: selectedId,
+    label: `Previously selected (${selectedId.slice(0, 12)}…)`,
+  })
+}
+
+async function loadBackends() {
   try {
-    const [backendList, devices] = await Promise.all([
-      api.get('/audio/backends').catch(() => ['default']),
-      api.get('/audio/devices').catch(() => ({ capture: [], playback: [] })),
-    ])
-    backends.value = Array.isArray(backendList) && backendList.length
-      ? backendList
-      : ['default']
-    captureDevices.value = normalizeDevices(devices.capture)
-    playbackDevices.value = normalizeDevices(devices.playback)
-  } catch (e) {
-    notify(e.message || 'Failed to refresh devices', 'error')
-  } finally {
-    refreshing.value = false
+    const list = await api.get('/audio/backends')
+    if (Array.isArray(list) && list.length) {
+      backends.value = list.map((b) =>
+        typeof b === 'string'
+          ? { id: b, label: b || 'Auto (system default)' }
+          : { id: b.id ?? '', label: b.label || b.id || 'Auto (system default)' },
+      )
+    }
+  } catch {
+    backends.value = [{ id: '', label: 'Auto (system default)' }]
   }
 }
+
+async function refreshCaptureDevices() {
+  refreshingCapture.value = true
+  captureError.value = ''
+  try {
+    const devices = await api.get('/audio/devices', {
+      capture_backend: form.value.input_backend || '',
+      playback_backend: form.value.output_backend || '',
+    })
+    captureRaw.value = devices.capture || []
+    captureDevices.value = normalizeDevices(devices.capture)
+    ensureSelection(captureDevices.value, form.value.input_device_id)
+    if (devices.capture_error) {
+      captureError.value = devices.capture_error
+    }
+  } catch (e) {
+    captureError.value = e.message || 'Failed to list capture devices'
+    captureDevices.value = [{ id: '', label: 'System default' }]
+  } finally {
+    refreshingCapture.value = false
+  }
+}
+
+async function refreshPlaybackDevices() {
+  refreshingPlayback.value = true
+  playbackError.value = ''
+  try {
+    const devices = await api.get('/audio/devices', {
+      capture_backend: form.value.input_backend || '',
+      playback_backend: form.value.output_backend || '',
+    })
+    playbackRaw.value = devices.playback || []
+    playbackDevices.value = normalizeDevices(devices.playback)
+    ensureSelection(playbackDevices.value, form.value.output_device_id)
+    if (devices.playback_error) {
+      playbackError.value = devices.playback_error
+    }
+  } catch (e) {
+    playbackError.value = e.message || 'Failed to list playback devices'
+    playbackDevices.value = [{ id: '', label: 'System default' }]
+  } finally {
+    refreshingPlayback.value = false
+  }
+}
+
+async function refreshAllDevices() {
+  await Promise.all([refreshCaptureDevices(), refreshPlaybackDevices()])
+}
+
+function onCaptureDevicePicked(id) {
+  const d = captureRaw.value.find((x) => (x.device_id || '') === id)
+  form.value.input_device_name = d?.name || d?.device_name || ''
+}
+
+function onPlaybackDevicePicked(id) {
+  const d = playbackRaw.value.find((x) => (x.device_id || '') === id)
+  form.value.output_device_name = d?.name || d?.device_name || ''
+}
+
+watch(
+  () => form.value.input_backend,
+  async () => {
+    if (!ready.value) return
+    // Backend change invalidates prior device id for that pipeline.
+    form.value.input_device_id = ''
+    form.value.input_device_name = ''
+    await refreshCaptureDevices()
+  },
+)
+
+watch(
+  () => form.value.output_backend,
+  async () => {
+    if (!ready.value) return
+    form.value.output_device_id = ''
+    form.value.output_device_name = ''
+    await refreshPlaybackDevices()
+  },
+)
 
 onMounted(async () => {
   try {
@@ -226,8 +342,10 @@ onMounted(async () => {
     form.value = {
       input_backend: cfg.audio?.input?.backend || '',
       input_device_id: cfg.audio?.input?.device_id || '',
+      input_device_name: cfg.audio?.input?.device_name || '',
       output_backend: cfg.audio?.output?.backend || '',
       output_device_id: cfg.audio?.output?.device_id || '',
+      output_device_name: cfg.audio?.output?.device_name || '',
       volume: cfg.audio?.output?.volume ?? 65,
       gain_db: cfg.audio?.input?.gain_db ?? 0,
       processing_backend: cfg.audio?.processing?.backend || 'speex',
@@ -237,11 +355,13 @@ onMounted(async () => {
       high_pass: cfg.audio?.processing?.high_pass ?? true,
       dereverb: cfg.audio?.processing?.dereverb ?? false,
     }
-    await refreshDevices()
+    await loadBackends()
+    await refreshAllDevices()
   } catch (e) {
     error.value = e.message || 'Failed to load config'
   } finally {
     loading.value = false
+    ready.value = true
   }
 })
 
@@ -255,11 +375,13 @@ async function save() {
         input: {
           backend: form.value.input_backend || '',
           device_id: form.value.input_device_id || '',
+          device_name: form.value.input_device_name || '',
           gain_db: form.value.gain_db,
         },
         output: {
           backend: form.value.output_backend || '',
           device_id: form.value.output_device_id || '',
+          device_name: form.value.output_device_name || '',
           volume: form.value.volume,
         },
         processing: {

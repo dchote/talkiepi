@@ -1,4 +1,9 @@
 <template>
+  <!--
+    Vuetify application layout (drawer + app-bar + main as siblings of v-app).
+    Brand is a list item so rail mode shows the icon automatically.
+    Breakpoints: <960 temporary, 960–1280 rail, ≥1280 expanded.
+  -->
   <v-navigation-drawer
     v-model="drawer"
     v-model:rail="rail"
@@ -6,18 +11,22 @@
     :temporary="isMobile"
     :mobile-breakpoint="960"
     app
+    theme="dark"
     class="sidebar-nav"
-    width="240"
+    width="260"
     rail-width="56"
   >
-    <div class="sidebar-brand pa-4">
-      <router-link to="/" class="d-flex align-center text-decoration-none">
-        <v-icon class="mr-2" color="primary">mdi-walkie-talkie</v-icon>
-        <span v-show="!rail" class="sidebar-brand-text">talkiepi</span>
-      </router-link>
-    </div>
-    <v-divider class="sidebar-divider" />
-    <v-list nav density="comfortable" class="sidebar-list">
+    <v-list nav density="comfortable" class="pa-2">
+      <v-list-item
+        prepend-icon="mdi-radio-handheld"
+        title="talkiepi"
+        to="/"
+        rounded="lg"
+        class="sidebar-brand-item mb-1"
+      />
+
+      <v-divider class="sidebar-divider my-2" />
+
       <v-list-item
         v-for="item in navItems"
         :key="item.to"
@@ -29,33 +38,55 @@
         class="sidebar-item"
       />
     </v-list>
+
+    <template #append>
+      <div v-show="!rail" class="px-4 pb-4">
+        <a
+          :href="docsHref"
+          target="_blank"
+          rel="noopener"
+          class="sidebar-docs-link"
+        >
+          API Docs
+        </a>
+      </div>
+    </template>
   </v-navigation-drawer>
 
-  <v-app-bar app flat class="content-header">
-    <v-btn
+  <v-app-bar app flat theme="dark" class="content-header">
+    <v-app-bar-nav-icon
       v-if="isMobile || rail"
-      icon
-      variant="text"
-      class="app-bar-icon-btn px-2"
-      :title="isMobile ? 'Menu' : (rail ? 'Expand' : 'Collapse')"
       @click="toggleDrawer"
-    >
-      <v-icon>mdi-menu</v-icon>
-    </v-btn>
-    <v-app-bar-title class="text-body-1 font-weight-medium">
-      {{ pageTitle }}
+    />
+
+    <v-app-bar-title v-if="isMobile">
+      talkiepi
     </v-app-bar-title>
+
     <v-spacer />
+
     <v-btn
       icon
       variant="text"
-      size="small"
-      class="px-2"
       :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
       @click="toggleTheme"
     >
-      <v-icon>{{ isDark ? 'mdi-weather-sunny' : 'mdi-weather-night' }}</v-icon>
+      <v-icon :icon="isDark ? 'mdi-weather-sunny' : 'mdi-weather-night'" />
     </v-btn>
+
+    <v-chip
+      class="mx-3"
+      size="small"
+      variant="tonal"
+      :color="connected ? 'success' : 'error'"
+    >
+      <v-icon
+        start
+        size="small"
+        :icon="connected ? 'mdi-access-point' : 'mdi-access-point-off'"
+      />
+      {{ connected ? 'Connected' : 'Offline' }}
+    </v-chip>
   </v-app-bar>
 
   <v-main>
@@ -64,50 +95,53 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useTheme, useDisplay } from 'vuetify'
 import { THEME_KEY } from '@/plugins/vuetify'
+import api from '@/utils/api'
+import { getIngressBase } from '@/utils/ingress'
 
 const route = useRoute()
 const theme = useTheme()
 const { width } = useDisplay()
+
 const drawer = ref(null)
 const rail = ref(false)
+const connected = ref(false)
+let statusTimer = null
 
 const navItems = [
-  { title: 'Status', icon: 'mdi-access-point', to: '/' },
-  { title: 'Server', icon: 'mdi-server', to: '/server' },
-  { title: 'Audio', icon: 'mdi-volume-high', to: '/audio' },
-  { title: 'Channels', icon: 'mdi-account-group', to: '/channels' },
-  { title: 'Chat', icon: 'mdi-message-text', to: '/chat' },
+  { title: 'Channels', icon: 'mdi-forum', to: '/' },
+  { title: 'Status', icon: 'mdi-access-point', to: '/status' },
+  { title: 'Settings', icon: 'mdi-cog', to: '/settings' },
 ]
 
+const docsHref = computed(() => `${getIngressBase()}/docs`)
 const isMobile = computed(() => width.value < 960)
 const isDark = computed(() => theme.global.current.value.dark)
-const pageTitle = computed(() => {
-  const match = navItems.find((item) => isActive(item.to))
-  return match ? match.title : 'talkiepi'
-})
 
 watch(width, (w) => {
   if (w < 960) {
-    rail.value = false
     drawer.value = false
-  } else if (w < 1280) {
-    rail.value = true
-    drawer.value = true
-  } else {
     rail.value = false
+  } else if (w < 1280) {
     drawer.value = true
+    rail.value = true
+  } else {
+    drawer.value = true
+    rail.value = false
   }
 }, { immediate: true })
 
 function isActive(to) {
   if (to === '/') {
-    return route.path === '/' || route.path === ''
+    return route.path === '/' || route.path === '' || route.path === '/channels' || route.path === '/chat'
   }
-  return route.path === to || route.path.startsWith(to + '/')
+  if (to === '/settings') {
+    return route.path === '/settings' || route.path.startsWith('/settings/')
+  }
+  return route.path === to || route.path.startsWith(`${to}/`)
 }
 
 function toggleDrawer() {
@@ -123,27 +157,72 @@ function toggleTheme() {
   theme.change(next)
   localStorage.setItem(THEME_KEY, next)
 }
+
+async function refreshConnected() {
+  try {
+    const st = await api.get('/status')
+    connected.value = !!st.connected
+  } catch {
+    connected.value = false
+  }
+}
+
+onMounted(() => {
+  refreshConnected()
+  statusTimer = setInterval(refreshConnected, 3000)
+})
+
+onUnmounted(() => {
+  if (statusTimer) clearInterval(statusTimer)
+})
 </script>
 
 <style scoped>
+.sidebar-nav {
+  background: #1f2937 !important;
+  border-right: none !important;
+}
+
+.sidebar-nav :deep(.v-navigation-drawer__content) {
+  background: #1f2937;
+}
+
+.sidebar-brand-item :deep(.v-list-item-title) {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.sidebar-nav :deep(.v-list-item) {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.sidebar-nav :deep(.v-list-item:hover) {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.sidebar-item :deep(.v-list-item--active) {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+}
+
+.sidebar-divider {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.sidebar-docs-link {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.8rem;
+  text-decoration: none;
+}
+
+.sidebar-docs-link:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
 .content-header {
-  background: rgb(var(--v-theme-surface)) !important;
-  border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.08);
-}
-
-.v-theme--dark .content-header {
-  border-bottom-color: rgba(255, 255, 255, 0.12);
-}
-
-.sidebar-brand-text {
-  font-weight: 600;
-  color: rgb(var(--v-theme-on-surface));
-}
-
-.sidebar-section-label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  color: rgba(var(--v-theme-on-surface), 0.5);
+  background: #1f2937 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 </style>

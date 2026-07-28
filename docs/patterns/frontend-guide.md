@@ -40,11 +40,11 @@ Centralize calls in `utils/api.js` against `/api/v1/*` (and `/health`). Under HA
 
 | Page | Job |
 |------|-----|
-| Status (`index`) | Connection state, connect/disconnect, PTT / Communicator |
+| Channels (`index`) | Channel tree + chat; primary landing page |
+| Status | Connection state, connect/disconnect, PTT / Communicator |
 | Server | Server + voice mode settings |
 | Audio | Devices, volume, processing |
-| Channels | Roster + join |
-| Chat | Text messages |
+| Updates | Version check / release notes |
 
 Keep pages thin; put shared chrome in `StandardCard`.
 

@@ -17,9 +17,11 @@ See [docs/ecosystem.md](docs/ecosystem.md) for how the three fit together.
 ## Features
 
 - Mumble client built on `github.com/dchote/go-mumble-server/pkg/mumble` (no gumble/OpenAL)
-- Opus voice via libopus; system audio via miniaudio (ALSA / PulseAudio / CoreAudio)
-- Device enumeration and selection, SpeexDSP echo cancellation / noise suppression
+- Default username `talkiepi-<device id>`; mDNS (`_mumble._tcp`) auto-discovery for empty server address
+- Live Opus voice TX/RX via libopus + miniaudio duplex (ALSA / PulseAudio / CoreAudio); SpeexDSP AEC/NS
+- Device enumeration/selection; GPIO PTT (configurable BCM pin) alongside REST PTT
 - Modes: always-on, push-to-talk, Communicator (half-duplex with chime)
+- Slack-style Channels UI with channel tree + chat history
 - Embedded Vue 3 + Vuetify 3 web UI and REST API (no auth; trusted LAN / HA ingress)
 - MQTT discovery entities mirroring esp32-mumble for Home Assistant
 - GitHub release update notifications

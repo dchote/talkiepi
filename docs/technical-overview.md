@@ -7,9 +7,9 @@
 | Language | Go **1.25** (`go.mod` may pin a patch such as 1.25.5) |
 | Protocol | `github.com/dchote/go-mumble-server` **v0.2.0** → `pkg/mumble` |
 | Client glue | `pkg/mumbleclient` (control, UDP, roster, voice) |
-| Codec | libopus via CGO (`gopkg.in/hraban/opus.v2`) |
-| Capture / playback | miniaudio (ALSA, PulseAudio, JACK, CoreAudio) |
-| AEC / NS | SpeexDSP (optional WebRTC stub); `internal/audio/process` |
+| Codec | libopus via CGO (`gopkg.in/hraban/opus.v2`); build with `-tags opus,speexdsp` |
+| Capture / playback | miniaudio / malgo duplex I/O (ALSA, PulseAudio, JACK, CoreAudio) |
+| AEC / NS | SpeexDSP (`-tags speexdsp`; optional WebRTC stub); `internal/audio/process` |
 | HTTP | chi v5 REST + SSE; optional embedded SPA |
 | Frontend | Vue 3, Vuetify 3, Vite, Yarn |
 | GPIO | `warthog618/go-gpiocdev` (Linux) |
@@ -40,9 +40,9 @@ Runtime packages:
 | `internal/communicator` | Half-duplex Communicator FSM |
 | `internal/ptt` | Manual / GPIO / mux triggers |
 | `internal/led` | Online / participants / transmit indicators |
-| `internal/audio` | Device descriptors, resolve, ring buffers |
+| `internal/audio` | Engine (live TX/RX), malgo DeviceIO, rings, mixer, chimes |
 | `internal/audio/process` | Speex / none / webrtc stub processors |
-| `internal/codec` | Opus profiles (48 kHz default, 16 kHz Esp32) |
+| `internal/codec` | Opus encode/decode profiles (48 kHz default, 16 kHz Esp32) |
 | `internal/vad` | Energy VAD (esp32-mumble constants) |
 | `internal/jitter` | PCM jitter buffer |
 | `internal/hass` | MQTT discovery entity definitions |

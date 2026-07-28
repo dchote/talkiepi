@@ -208,10 +208,10 @@ func TestStateString(t *testing.T) {
 		want string
 	}{
 		{Idle, "Idle"},
-		{OpenChime, "OpenChime"},
+		{OpenChime, "Open Channel"},
 		{MicActive, "MicActive"},
 		{SilenceWindow, "SilenceWindow"},
-		{CloseChime, "CloseChime"},
+		{CloseChime, "Close Channel"},
 		{State(99), "Unknown"},
 	}
 	for _, tc := range cases {

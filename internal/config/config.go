@@ -29,15 +29,16 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Address     string `yaml:"address" json:"address"`
-	Port        int    `yaml:"port" json:"port"`
-	Username    string `yaml:"username" json:"username"`
-	Password    string `yaml:"password" json:"password"`
-	Channel     string `yaml:"channel" json:"channel"`
-	InsecureTLS bool   `yaml:"insecure_tls" json:"insecure_tls"`
-	Certificate string `yaml:"certificate" json:"certificate"`
-	Key         string `yaml:"key" json:"key"`
-	Crypto      string `yaml:"crypto" json:"crypto"` // legacy | lite
+	Address      string `yaml:"address" json:"address"`
+	Port         int    `yaml:"port" json:"port"`
+	Username     string `yaml:"username" json:"username"`
+	Password     string `yaml:"password" json:"password"`
+	Channel      string `yaml:"channel" json:"channel"`
+	InsecureTLS  bool   `yaml:"insecure_tls" json:"insecure_tls"`
+	Certificate  string `yaml:"certificate" json:"certificate"`
+	Key          string `yaml:"key" json:"key"`
+	Crypto       string `yaml:"crypto" json:"crypto"` // legacy | lite
+	AutoDiscover bool   `yaml:"auto_discover" json:"auto_discover"`
 }
 
 type AudioConfig struct {
@@ -84,11 +85,12 @@ type VoiceConfig struct {
 }
 
 type TriggersConfig struct {
+	GPIOEnabled bool   `yaml:"gpio_enabled" json:"gpio_enabled"`
 	GPIOChip    string `yaml:"gpio_chip" json:"gpio_chip"`
 	GPIOLine    int    `yaml:"gpio_line" json:"gpio_line"`
 	ActiveLow   bool   `yaml:"active_low" json:"active_low"`
-	KeyboardKey string `yaml:"keyboard_key" json:"keyboard_key"`
-	MQTTTopic   string `yaml:"mqtt_topic" json:"mqtt_topic"`
+	KeyboardKey string `yaml:"keyboard_key" json:"keyboard_key"` // reserved
+	MQTTTopic   string `yaml:"mqtt_topic" json:"mqtt_topic"`     // reserved
 }
 
 type LEDsConfig struct {
@@ -133,11 +135,12 @@ type LoggingConfig struct {
 func Defaults() *Config {
 	return &Config{
 		Server: ServerConfig{
-			Address:     "",
-			Port:        64738,
-			Channel:     "Root",
-			InsecureTLS: true,
-			Crypto:      "legacy",
+			Address:      "",
+			Port:         64738,
+			Channel:      "Root",
+			InsecureTLS:  true,
+			Crypto:       "legacy",
+			AutoDiscover: true,
 		},
 		Audio: AudioConfig{
 			Input: DeviceConfig{
@@ -168,14 +171,17 @@ func Defaults() *Config {
 			},
 		},
 		Voice: VoiceConfig{
-			Mode:       "always_on",
+			Mode:       "push_to_talk",
 			SampleRate: 48000,
 			Bitrate:    40000,
 			FrameMs:    20,
 			Complexity: 5,
 		},
 		Triggers: TriggersConfig{
-			ActiveLow: true,
+			GPIOEnabled: false,
+			GPIOChip:    "gpiochip0",
+			GPIOLine:    17,
+			ActiveLow:   true,
 		},
 		LEDs: LEDsConfig{
 			OnlineLine:       18,
@@ -243,11 +249,7 @@ func (c *Config) SetPath(path string) {
 func (c *Config) Clone() *Config {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	out := *c
-	out.Audio.Input.ChannelMap = append([]int(nil), c.Audio.Input.ChannelMap...)
-	out.Audio.Output.ChannelMap = append([]int(nil), c.Audio.Output.ChannelMap...)
-	out.mu = sync.RWMutex{}
-	return &out
+	return c.cloneUnlocked()
 }
 
 // Save writes the config atomically to path (or c.path).
@@ -344,6 +346,27 @@ func (c *Config) ServerHostPort() string {
 	return fmt.Sprintf("%s:%d", c.Server.Address, c.Server.Port)
 }
 
+// SeedUsernameIfEmpty sets username when empty. Returns true if it wrote a value.
+func (c *Config) SeedUsernameIfEmpty(username string) bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if strings.TrimSpace(c.Server.Username) != "" || strings.TrimSpace(username) == "" {
+		return false
+	}
+	c.Server.Username = username
+	return true
+}
+
+// SetServerEndpoint updates address/port under lock.
+func (c *Config) SetServerEndpoint(address string, port int) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.Server.Address = address
+	if port > 0 {
+		c.Server.Port = port
+	}
+}
+
 func atomicWrite(path string, data []byte, mode os.FileMode) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0o750); err != nil {
 		return err
@@ -394,6 +417,7 @@ func (c *Config) applyEnv() {
 	setStr("TALKIEPI_SERVER_CHANNEL", &c.Server.Channel)
 	setBool("TALKIEPI_SERVER_INSECURE_TLS", &c.Server.InsecureTLS)
 	setStr("TALKIEPI_SERVER_CRYPTO", &c.Server.Crypto)
+	setBool("TALKIEPI_SERVER_AUTO_DISCOVER", &c.Server.AutoDiscover)
 
 	setStr("TALKIEPI_AUDIO_INPUT_BACKEND", &c.Audio.Input.Backend)
 	setStr("TALKIEPI_AUDIO_INPUT_DEVICE_ID", &c.Audio.Input.DeviceID)
@@ -415,6 +439,7 @@ func (c *Config) applyEnv() {
 	setInt("TALKIEPI_VOICE_SAMPLE_RATE", &c.Voice.SampleRate)
 	setInt("TALKIEPI_VOICE_BITRATE", &c.Voice.Bitrate)
 
+	setBool("TALKIEPI_TRIGGERS_GPIO_ENABLED", &c.Triggers.GPIOEnabled)
 	setStr("TALKIEPI_TRIGGERS_GPIO_CHIP", &c.Triggers.GPIOChip)
 	setInt("TALKIEPI_TRIGGERS_GPIO_LINE", &c.Triggers.GPIOLine)
 	setBool("TALKIEPI_TRIGGERS_ACTIVE_LOW", &c.Triggers.ActiveLow)

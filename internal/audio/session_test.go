@@ -39,7 +39,7 @@ func TestSessionProcessCaptureGate(t *testing.T) {
 	enc := func([]int16) ([]byte, error) { return []byte{1, 2, 3}, nil }
 
 	// Not allowed to TX
-	if err := s.ProcessCaptureFrame(pcm, enc, false); err != nil {
+	if _, err := s.ProcessCaptureFrame(pcm, enc, false); err != nil {
 		t.Fatal(err)
 	}
 	if sink.frames != 0 {
@@ -47,19 +47,32 @@ func TestSessionProcessCaptureGate(t *testing.T) {
 	}
 
 	// Force VAD into transmit then allow
-	s.vad.ForceTransmit()
-	if err := s.ProcessCaptureFrame(pcm, enc, true); err != nil {
+	s.ForceTransmit()
+	if _, err := s.ProcessCaptureFrame(pcm, enc, true); err != nil {
 		t.Fatal(err)
 	}
 	if sink.frames != 1 {
 		t.Fatalf("frames=%d", sink.frames)
 	}
 
-	s.vad.ForceStop()
-	if err := s.ProcessCaptureFrame(pcm, enc, true); err != nil {
+	s.ForceStop()
+	if _, err := s.ProcessCaptureFrame(pcm, enc, false); err != nil {
 		t.Fatal(err)
 	}
 	if sink.terms < 1 {
 		t.Fatal("expected terminator")
+	}
+
+	// While allowTX stays true, silent frames must keep transmitting (PTT hold).
+	sink.frames = 0
+	quiet := make([]int16, 960)
+	s.ForceTransmit()
+	for i := 0; i < 30; i++ {
+		if _, err := s.ProcessCaptureFrame(quiet, enc, true); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if sink.frames < 20 {
+		t.Fatalf("expected sustained TX while allowTX, frames=%d", sink.frames)
 	}
 }

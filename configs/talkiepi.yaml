@@ -1,38 +1,41 @@
-# talkiepi configuration
-# Docs: https://github.com/dchote/talkiepi
-
 server:
-  address: ""
+  address: 172.20.0.99
   port: 64738
-  username: ""
+  username: talkiepi-A664B6A4FB72
   password: ""
   channel: Root
   insecure_tls: true
+  certificate: ""
+  key: ""
   crypto: legacy
-
+  auto_discover: true
 audio:
   input:
     backend: ""
-    device_id: ""
-    device_name: ""
+    device_id: 4170706c65555342417564696f456e67696e653a556e6b6e6f776e204d616e7566616374757265723a4a6162726120535045414b20343130205553423a333035303735354432303434783031313230303a32
+    device_name: Jabra SPEAK 410 USB
     sample_rate: 48000
     channels: 1
-    channel_map: [0]
+    channel_map:
+    - 0
     period_frames: 960
     periods: 3
     exclusive: false
     gain_db: 0.0
+    volume: 0.0
   output:
     backend: ""
-    device_id: ""
-    device_name: ""
+    device_id: 4170706c65555342417564696f456e67696e653a556e6b6e6f776e204d616e7566616374757265723a4a6162726120535045414b20343130205553423a333035303735354432303434783031313230303a31
+    device_name: Jabra SPEAK 410 USB
     sample_rate: 48000
     channels: 1
-    channel_map: [0]
+    channel_map:
+    - 0
     period_frames: 960
     periods: 3
     exclusive: false
-    volume: 65
+    gain_db: 0.0
+    volume: 65.0
   processing:
     backend: speex
     duplex_mode: auto
@@ -43,35 +46,31 @@ audio:
     noise_suppress: true
     ns_level: moderate
     agc: false
-    agc_target_dbfs: -18
+    agc_target_dbfs: -18.0
     dereverb: false
     high_pass: true
-
 voice:
-  mode: always_on
+  mode: communicator
   sample_rate: 48000
   bitrate: 40000
   frame_ms: 20
   complexity: 5
-
 triggers:
-  gpio_chip: ""
-  gpio_line: 0
+  gpio_enabled: false
+  gpio_chip: gpiochip0
+  gpio_line: 17
   active_low: true
   keyboard_key: ""
   mqtt_topic: ""
-
 leds:
   enabled: false
   chip: gpiochip0
   online_line: 18
   participants_line: 23
   transmit_line: 24
-
 web:
   host: 0.0.0.0
   port: 8080
-
 mqtt:
   enabled: false
   broker: ""
@@ -79,16 +78,13 @@ mqtt:
   username: ""
   password: ""
   client_id: talkiepi
-
 hass:
   enabled: false
   discovery_prefix: homeassistant
   device_name: talkiepi
-
 updates:
   enabled: true
   interval_hours: 6
   repo: dchote/talkiepi
-
 logging:
   level: info

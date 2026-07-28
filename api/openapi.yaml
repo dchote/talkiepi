@@ -95,6 +95,88 @@ paths:
         "400":
           $ref: "#/components/responses/Error"
 
+  /api/v1/chat/messages:
+    get:
+      tags: [chat]
+      summary: Recent chat history
+      operationId: listChatMessages
+      parameters:
+        - name: channel_id
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 200
+      responses:
+        "200":
+          description: Message list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      type: object
+
+  /api/v1/gpio/pins:
+    get:
+      tags: [config]
+      summary: Selectable BCM GPIO pins for PTT
+      operationId: listGPIOPins
+      responses:
+        "200":
+          description: Pin list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pins:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        line:
+                          type: integer
+                        label:
+                          type: string
+
+  /api/v1/discovery/servers:
+    get:
+      tags: [discovery]
+      summary: Browse LAN for Mumble servers via mDNS
+      operationId: discoverServers
+      description: |
+        Browses for `_mumble._tcp` (Bonjour) services, matching go-mumble-server
+        advertisement. Used to populate an empty server address.
+      parameters:
+        - name: timeout_ms
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 15000
+            default: 3000
+      responses:
+        "200":
+          description: Discovered servers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  servers:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/DiscoveredServer"
+        "502":
+          $ref: "#/components/responses/Error"
+
   /api/v1/events:
     get:
       tags: [status]
@@ -365,6 +447,20 @@ components:
         error:
           type: string
 
+    DiscoveredServer:
+      type: object
+      properties:
+        name:
+          type: string
+        host:
+          type: string
+        port:
+          type: integer
+        addresses:
+          type: array
+          items:
+            type: string
+
     Status:
       type: object
       properties:
@@ -392,6 +488,9 @@ components:
           type: string
         transmitting:
           type: boolean
+        receiving:
+          type: boolean
+          description: True while inbound voice was recently decoded
         participants:
           type: integer
         version:

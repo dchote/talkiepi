@@ -17,6 +17,7 @@ import (
 	"github.com/dchote/talkiepi/internal/audio"
 	"github.com/dchote/talkiepi/internal/config"
 	"github.com/dchote/talkiepi/internal/controller"
+	"github.com/dchote/talkiepi/internal/identity"
 	"github.com/dchote/talkiepi/internal/led"
 	"github.com/dchote/talkiepi/internal/rest"
 	"github.com/dchote/talkiepi/internal/update"
@@ -32,6 +33,7 @@ func main() {
 	configPath := flag.String("config", defaultConfigPath(), "path to talkiepi.yaml")
 	showVersion := flag.Bool("version", false, "print version and exit")
 	frontendEmbed := flag.Bool("frontend-embed", true, "serve embedded frontend when built with embed_frontend")
+	frontendDir := flag.String("frontend-dir", "frontend/dist", "directory to serve when -frontend-embed=false (or embed unavailable)")
 	flag.Parse()
 
 	if *showVersion {
@@ -43,6 +45,11 @@ func main() {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "config: %v\n", err)
 		os.Exit(1)
+	}
+	if cfg.SeedUsernameIfEmpty(identity.DefaultUsername()) {
+		if err := cfg.Save(""); err != nil {
+			fmt.Fprintf(os.Stderr, "config: seed username: %v\n", err)
+		}
 	}
 
 	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: parseLevel(cfg.Logging.Level)}))
@@ -78,42 +85,44 @@ func main() {
 		})
 	}
 
+	enumerator := audio.NewMalgoEnumerator()
 	ctrl := controller.New(controller.Options{
-		Config:  cfg,
-		Logger:  log,
-		Version: version,
-		LEDs:    leds,
-		Updater: updater,
+		Config:     cfg,
+		Logger:     log,
+		Version:    version,
+		LEDs:       leds,
+		Updater:    updater,
+		Enumerator: enumerator,
 	})
 
-	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer cancel()
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
 	if err := ctrl.Start(ctx); err != nil {
 		log.Error("controller start", "err", err)
 		os.Exit(1)
 	}
-	defer ctrl.Stop()
 
-	var frontend fs.FS
-	if *frontendEmbed {
-		frontend, _ = getFrontendFS()
-	}
+	frontend, frontendSrc := resolveFrontendFS(*frontendEmbed, *frontendDir, log)
 	handler := rest.NewRouter(rest.Options{
 		Controller: ctrl,
 		Frontend:   frontend,
 		Version:    version,
-		Enumerator: audio.NewMalgoEnumerator(),
+		Enumerator: enumerator,
+		Log:        log,
 	})
 
 	addr := net.JoinHostPort(cfg.Web.Host, fmt.Sprintf("%d", cfg.Web.Port))
 	srv := &http.Server{Addr: addr, Handler: handler, ReadHeaderTimeout: 10 * time.Second}
+	httpErr := make(chan error, 1)
 	go func() {
-		log.Info("listening", "addr", addr, "version", version)
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Error("http", "err", err)
-			cancel()
+		log.Info("listening", "addr", addr, "version", version, "frontend", frontendSrc)
+		err := srv.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			httpErr <- err
+			return
 		}
+		httpErr <- nil
 	}()
 
 	if updater != nil {
@@ -132,10 +141,30 @@ func main() {
 		}()
 	}
 
-	<-ctx.Done()
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer shutdownCancel()
-	_ = srv.Shutdown(shutdownCtx)
+	exitCode := 0
+	select {
+	case <-ctx.Done():
+		log.Info("shutting down")
+	case err := <-httpErr:
+		if err != nil {
+			log.Error("http", "err", err)
+			exitCode = 1
+		}
+	}
+
+	// Restore default signal handling so a second Ctrl+C force-exits if shutdown hangs.
+	stop()
+
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 8*time.Second)
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Warn("http shutdown", "err", err)
+	}
+	shutdownCancel()
+	ctrl.Stop()
+	log.Info("stopped")
+	if exitCode != 0 {
+		os.Exit(exitCode)
+	}
 }
 
 func defaultConfigPath() string {
@@ -165,4 +194,29 @@ func splitRepo(repo string) [2]string {
 		}
 	}
 	return [2]string{"dchote", repo}
+}
+
+// resolveFrontendFS picks an embedded FS, then a directory on disk.
+// Returns nil FS when neither is available (API-only mode).
+func resolveFrontendFS(embed bool, dir string, log *slog.Logger) (fs.FS, string) {
+	if embed {
+		if fsys, err := getFrontendFS(); err == nil && fsys != nil {
+			if _, err := fs.Stat(fsys, "index.html"); err == nil {
+				return fsys, "embedded"
+			}
+		}
+	}
+	if dir == "" {
+		dir = "frontend/dist"
+	}
+	index := filepath.Join(dir, "index.html")
+	if st, err := os.Stat(index); err == nil && !st.IsDir() {
+		return os.DirFS(dir), dir
+	}
+	log.Warn("frontend not available; serving API only",
+		"hint", "run: cd frontend && yarn build  (or yarn dev on :3000)",
+		"frontend_dir", dir,
+		"frontend_embed", embed,
+	)
+	return nil, "none"
 }
