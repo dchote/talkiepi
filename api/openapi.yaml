@@ -1,0 +1,535 @@
+openapi: 3.0.3
+info:
+  title: talkiepi REST API
+  description: |
+    Unauthenticated management API for the talkiepi Mumble client.
+    Intended for trusted LAN or Home Assistant ingress only.
+  version: 0.1.0
+  license:
+    name: MPL-2.0
+    url: https://mozilla.org/MPL/2.0/
+
+servers:
+  - url: http://127.0.0.1:8080
+    description: Local default
+
+tags:
+  - name: health
+  - name: status
+  - name: config
+  - name: control
+  - name: roster
+  - name: audio
+  - name: updates
+
+paths:
+  /health:
+    get:
+      tags: [health]
+      summary: Liveness probe
+      operationId: getHealth
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, version]
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  version:
+                    type: string
+                    example: 0.1.0
+
+  /api/v1/status:
+    get:
+      tags: [status]
+      summary: Runtime connection status
+      operationId: getStatus
+      responses:
+        "200":
+          description: Status snapshot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Status"
+
+  /api/v1/config:
+    get:
+      tags: [config]
+      summary: Current configuration
+      operationId: getConfig
+      responses:
+        "200":
+          description: Full config object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Config"
+    patch:
+      tags: [config]
+      summary: Merge a partial YAML document into config
+      operationId: patchConfig
+      requestBody:
+        required: true
+        content:
+          application/yaml:
+            schema:
+              type: string
+              example: |
+                voice:
+                  mode: push_to_talk
+          text/plain:
+            schema:
+              type: string
+      responses:
+        "200":
+          description: Updated config
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Config"
+        "400":
+          $ref: "#/components/responses/Error"
+
+  /api/v1/events:
+    get:
+      tags: [status]
+      summary: Server-sent events stream
+      operationId: getEvents
+      description: |
+        SSE stream of status and controller events. Sends an initial status
+        payload, then periodic status heartbeats and fan-out events.
+      responses:
+        "200":
+          description: text/event-stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+
+  /api/v1/ptt:
+    post:
+      tags: [control]
+      summary: Press or release manual PTT
+      operationId: postPtt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [pressed]
+              properties:
+                pressed:
+                  type: boolean
+      responses:
+        "200":
+          description: Applied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pressed:
+                    type: boolean
+        "400":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+
+  /api/v1/communicator/toggle:
+    post:
+      tags: [control]
+      summary: Toggle Communicator half-duplex state
+      operationId: postCommunicatorToggle
+      responses:
+        "200":
+          description: New communicator state name
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  state:
+                    type: string
+                    example: MicActive
+
+  /api/v1/connection/connect:
+    post:
+      tags: [control]
+      summary: Connect to configured Mumble server
+      operationId: postConnect
+      responses:
+        "200":
+          description: Connected (or already connecting)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Status"
+        "502":
+          $ref: "#/components/responses/Error"
+
+  /api/v1/connection/disconnect:
+    post:
+      tags: [control]
+      summary: Disconnect from Mumble
+      operationId: postDisconnect
+      responses:
+        "200":
+          description: Disconnected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Status"
+
+  /api/v1/channels:
+    get:
+      tags: [roster]
+      summary: List channels
+      operationId: getChannels
+      responses:
+        "200":
+          description: Channel list (empty if not connected)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Channel"
+
+  /api/v1/channels/{id}/join:
+    post:
+      tags: [roster]
+      summary: Join channel by ID
+      operationId: postJoinChannel
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Join requested
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  channel_id:
+                    type: integer
+                    format: int32
+        "400":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+
+  /api/v1/users:
+    get:
+      tags: [roster]
+      summary: List users
+      operationId: getUsers
+      responses:
+        "200":
+          description: User list (empty if not connected)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+  /api/v1/text:
+    post:
+      tags: [roster]
+      summary: Send channel text message
+      operationId: postText
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                message:
+                  type: string
+                channel_id:
+                  type: integer
+                  format: int32
+                  description: Defaults to current channel when 0 or omitted
+      responses:
+        "200":
+          description: Sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: sent
+        "400":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "502":
+          $ref: "#/components/responses/Error"
+
+  /api/v1/audio/backends:
+    get:
+      tags: [audio]
+      summary: List audio backends
+      operationId: getAudioBackends
+      responses:
+        "200":
+          description: Backend names
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                example: [alsa, pulseaudio, coreaudio]
+
+  /api/v1/audio/devices:
+    get:
+      tags: [audio]
+      summary: Enumerate capture and playback devices
+      operationId: getAudioDevices
+      parameters:
+        - name: backend
+          in: query
+          schema:
+            type: string
+          description: Optional backend filter
+      responses:
+        "200":
+          description: Device lists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  capture:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/DeviceInfo"
+                  playback:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/DeviceInfo"
+        "500":
+          $ref: "#/components/responses/Error"
+
+  /api/v1/update:
+    get:
+      tags: [updates]
+      summary: Update check result
+      operationId: getUpdate
+      parameters:
+        - name: refresh
+          in: query
+          schema:
+            type: string
+            enum: ["1"]
+          description: When set to 1, query GitHub for the latest release
+      responses:
+        "200":
+          description: Cached or freshly checked update info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateInfo"
+        "502":
+          $ref: "#/components/responses/Error"
+
+components:
+  responses:
+    Error:
+      description: Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+
+    Status:
+      type: object
+      properties:
+        connected:
+          type: boolean
+        connecting:
+          type: boolean
+        address:
+          type: string
+        username:
+          type: string
+        channel:
+          type: string
+        session:
+          type: integer
+          format: int32
+        ping_ms:
+          type: number
+          format: double
+        udp_active:
+          type: boolean
+        transport:
+          type: string
+        mode:
+          type: string
+        transmitting:
+          type: boolean
+        participants:
+          type: integer
+        version:
+          type: string
+
+    Channel:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        parent_id:
+          type: integer
+          format: int32
+        has_parent:
+          type: boolean
+        name:
+          type: string
+        description:
+          type: string
+        temporary:
+          type: boolean
+        position:
+          type: integer
+          format: int32
+        max_users:
+          type: integer
+          format: int32
+        links:
+          type: array
+          items:
+            type: integer
+            format: int32
+
+    User:
+      type: object
+      properties:
+        session:
+          type: integer
+          format: int32
+        name:
+          type: string
+        user_id:
+          type: integer
+          format: int32
+        channel_id:
+          type: integer
+          format: int32
+        mute:
+          type: boolean
+        deaf:
+          type: boolean
+        suppress:
+          type: boolean
+        self_mute:
+          type: boolean
+        self_deaf:
+          type: boolean
+        comment:
+          type: string
+        hash:
+          type: string
+        priority_speaker:
+          type: boolean
+        recording:
+          type: boolean
+
+    DeviceInfo:
+      type: object
+      properties:
+        backend:
+          type: string
+        device_id:
+          type: string
+        device_name:
+          type: string
+        name:
+          type: string
+        is_default:
+          type: boolean
+        max_channels:
+          type: integer
+        min_channels:
+          type: integer
+        sample_rates:
+          type: array
+          items:
+            type: integer
+        native_format:
+          type: string
+
+    UpdateInfo:
+      type: object
+      properties:
+        current:
+          type: string
+        latest:
+          type: string
+        url:
+          type: string
+        available:
+          type: boolean
+        checked_at:
+          type: string
+          format: date-time
+
+    Config:
+      type: object
+      description: Runtime configuration (mirrors internal/config.Config JSON)
+      additionalProperties: true
+      properties:
+        server:
+          type: object
+          additionalProperties: true
+        audio:
+          type: object
+          additionalProperties: true
+        voice:
+          type: object
+          additionalProperties: true
+        triggers:
+          type: object
+          additionalProperties: true
+        leds:
+          type: object
+          additionalProperties: true
+        web:
+          type: object
+          additionalProperties: true
+        mqtt:
+          type: object
+          additionalProperties: true
+        hass:
+          type: object
+          additionalProperties: true
+        updates:
+          type: object
+          additionalProperties: true
+        logging:
+          type: object
+          additionalProperties: true

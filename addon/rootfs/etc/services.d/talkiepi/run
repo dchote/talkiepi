@@ -1,0 +1,80 @@
+#!/usr/bin/with-contenv bashio
+# ==============================================================================
+# Start talkiepi
+# s6-overlay docs: https://github.com/just-containers/s6-overlay
+# ==============================================================================
+
+CONFIG_PATH=/data/talkiepi.yaml
+FORCE_OPTIONS=$(bashio::config 'force_options')
+
+export TALKIEPI_STATE_DIR=/data
+export TALKIEPI_SERVER_ADDRESS=$(bashio::config 'server')
+export TALKIEPI_SERVER_PORT=$(bashio::config 'port')
+export TALKIEPI_SERVER_USERNAME=$(bashio::config 'username')
+export TALKIEPI_SERVER_PASSWORD=$(bashio::config 'password')
+export TALKIEPI_SERVER_CHANNEL=$(bashio::config 'channel')
+export TALKIEPI_VOICE_MODE=$(bashio::config 'mode')
+export TALKIEPI_SERVER_CRYPTO=$(bashio::config 'crypto')
+export TALKIEPI_AUDIO_OUTPUT_VOLUME=$(bashio::config 'speaker_volume')
+export TALKIEPI_AUDIO_INPUT_GAIN_DB=$(bashio::config 'mic_gain_db')
+export TALKIEPI_AUDIO_INPUT_DEVICE_NAME=$(bashio::config 'audio_input')
+export TALKIEPI_AUDIO_OUTPUT_DEVICE_NAME=$(bashio::config 'audio_output')
+export TALKIEPI_AUDIO_PROCESSING_ECHO_CANCEL=$(bashio::config 'echo_cancel')
+export TALKIEPI_AUDIO_PROCESSING_NOISE_SUPPRESS=$(bashio::config 'noise_suppress')
+export TALKIEPI_TRIGGERS_GPIO_CHIP=$(bashio::config 'ptt_gpio_chip')
+export TALKIEPI_TRIGGERS_GPIO_LINE=$(bashio::config 'ptt_gpio_line')
+export TALKIEPI_TRIGGERS_ACTIVE_LOW=$(bashio::config 'ptt_active_low')
+export TALKIEPI_WEB_HOST=0.0.0.0
+export TALKIEPI_WEB_PORT=$(bashio::config 'web_port')
+export TALKIEPI_LOGGING_LEVEL=$(bashio::config 'log_level')
+
+# When force_options is true, remove persisted YAML so env overrides win every start.
+if bashio::var.true "${FORCE_OPTIONS}"; then
+  rm -f "${CONFIG_PATH}"
+fi
+
+# Seed config on first run (or after force_options).
+if [ ! -f "${CONFIG_PATH}" ]; then
+  cat > "${CONFIG_PATH}" <<EOF
+server:
+  address: "${TALKIEPI_SERVER_ADDRESS}"
+  port: ${TALKIEPI_SERVER_PORT}
+  username: "${TALKIEPI_SERVER_USERNAME}"
+  password: "${TALKIEPI_SERVER_PASSWORD}"
+  channel: "${TALKIEPI_SERVER_CHANNEL}"
+  crypto: ${TALKIEPI_SERVER_CRYPTO}
+voice:
+  mode: ${TALKIEPI_VOICE_MODE}
+audio:
+  input:
+    device_name: "${TALKIEPI_AUDIO_INPUT_DEVICE_NAME}"
+    gain_db: ${TALKIEPI_AUDIO_INPUT_GAIN_DB}
+  output:
+    device_name: "${TALKIEPI_AUDIO_OUTPUT_DEVICE_NAME}"
+    volume: ${TALKIEPI_AUDIO_OUTPUT_VOLUME}
+  processing:
+    echo_cancel: ${TALKIEPI_AUDIO_PROCESSING_ECHO_CANCEL}
+    noise_suppress: ${TALKIEPI_AUDIO_PROCESSING_NOISE_SUPPRESS}
+triggers:
+  gpio_chip: "${TALKIEPI_TRIGGERS_GPIO_CHIP}"
+  gpio_line: ${TALKIEPI_TRIGGERS_GPIO_LINE}
+  active_low: ${TALKIEPI_TRIGGERS_ACTIVE_LOW}
+web:
+  host: 0.0.0.0
+  port: ${TALKIEPI_WEB_PORT}
+logging:
+  level: ${TALKIEPI_LOGGING_LEVEL}
+EOF
+fi
+
+# Optional Mosquitto credentials from the supervisor.
+if bashio::services.available "mqtt"; then
+  export TALKIEPI_MQTT_ENABLED=true
+  export TALKIEPI_MQTT_BROKER=$(bashio::services "mqtt" "host")
+  export TALKIEPI_MQTT_PORT=$(bashio::services "mqtt" "port")
+  export TALKIEPI_MQTT_USERNAME=$(bashio::services "mqtt" "username")
+  export TALKIEPI_MQTT_PASSWORD=$(bashio::services "mqtt" "password")
+  export TALKIEPI_HASS_ENABLED=true
+fi
+
+exec /usr/bin/talkiepi -config "${CONFIG_PATH}" -frontend-embed=true

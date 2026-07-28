@@ -1,0 +1,9 @@
+# /etc/default/talkiepi — Debian defaults file (EnvironmentFile for systemd)
+# Service-level knobs only; structured settings live in /etc/talkiepi/talkiepi.yaml
+
+#TALKIEPI_CONFIG=/etc/talkiepi/talkiepi.yaml
+#TALKIEPI_WEB_HOST=0.0.0.0
+#TALKIEPI_WEB_PORT=8080
+#TALKIEPI_LOG_LEVEL=info
+#TALKIEPI_STATE_DIR=/var/lib/talkiepi
+#TALKIEPI_ARGS=

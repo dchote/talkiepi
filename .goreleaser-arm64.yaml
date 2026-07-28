@@ -1,0 +1,62 @@
+# Goreleaser config for Linux arm64 only. Used by scripts/build-deb.sh to build
+# in an arm64 container so CGO uses the correct toolchain.
+#
+# CGO deps (pkg-config, libopus-dev, libspeexdsp-dev) are installed by
+# scripts/build-deb.sh docker prep before goreleaser runs. before.hooks below
+# are a best-effort fallback when running goreleaser outside that wrapper.
+version: 2
+
+project_name: talkiepi
+
+before:
+  hooks:
+    - sh -c "apt-get update && apt-get install -y pkg-config libopus-dev libspeexdsp-dev || true"
+
+builds:
+  - id: talkiepi
+    main: ./cmd/talkiepi
+    binary: talkiepi
+    goos:
+      - linux
+    goarch:
+      - arm64
+    env:
+      - CGO_ENABLED=1
+    tags:
+      - embed_frontend
+    ldflags:
+      - -s -w
+      - -X main.version={{ .Version }}
+      - -X main.commit={{ .ShortCommit }}
+      - -X main.buildTime={{ .Date }}
+
+nfpms:
+  - id: default
+    builds:
+      - talkiepi
+    package_name: talkiepi
+    file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Arch }}.deb"
+    formats:
+      - deb
+    description: Raspberry Pi / headless Mumble client with web UI
+    homepage: https://github.com/dchote/talkiepi
+    maintainer: Daniel Chote <daniel@chote.com>
+    license: MPL-2.0
+    bindir: /usr/bin
+    dependencies:
+      - libopus0
+      - libspeexdsp1
+    contents:
+      - src: configs/talkiepi.yaml
+        dst: /usr/share/talkiepi/talkiepi.yaml
+      - src: configs/talkiepi.service
+        dst: /lib/systemd/system/talkiepi.service
+      - src: configs/talkiepi.default
+        dst: /etc/default/talkiepi
+        type: config|noreplace
+    scripts:
+      postinstall: scripts/postinstall.sh
+      preremove: scripts/preremove.sh
+    deb:
+      lintian_overrides:
+        - statically-linked-binary

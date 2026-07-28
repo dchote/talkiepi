@@ -1,0 +1,63 @@
+# https://developers.home-assistant.io/docs/add-ons/configuration
+name: talkiepi
+description: Headless Mumble client for Raspberry Pi / Home Assistant with web UI, PTT, and audio processing.
+version: "0.1.0"
+slug: talkiepi
+url: "https://github.com/dchote/talkiepi/tree/main/addon"
+arch:
+  - aarch64
+  - amd64
+init: false
+ingress: true
+ingress_port: 8080
+panel_icon: mdi:walkie-talkie
+audio: true
+hassio_api: true
+services:
+  - mqtt:want
+devices:
+  - /dev/gpiochip0
+watchdog: http://[HOST]:[PORT:8080]/health
+map:
+  - share:rw
+options:
+  server: ""
+  port: 64738
+  username: ""
+  password: ""
+  channel: Root
+  mode: always_on
+  crypto: legacy
+  speaker_volume: 65
+  mic_gain_db: 0
+  audio_input: ""
+  audio_output: ""
+  echo_cancel: true
+  noise_suppress: true
+  ptt_gpio_chip: ""
+  ptt_gpio_line: 0
+  ptt_active_low: true
+  web_port: 8080
+  log_level: info
+  force_options: false
+schema:
+  server: str?
+  port: port
+  username: str?
+  password: password?
+  channel: str?
+  mode: list(always_on|push_to_talk|communicator)
+  crypto: list(legacy|lite)
+  speaker_volume: int(0,100)
+  mic_gain_db: int(-20,20)
+  audio_input: str?
+  audio_output: str?
+  echo_cancel: bool
+  noise_suppress: bool
+  ptt_gpio_chip: str?
+  ptt_gpio_line: int(0,255)
+  ptt_active_low: bool
+  web_port: port
+  log_level: list(debug|info|warn|error)
+  force_options: bool
+image: "ghcr.io/dchote/{arch}-addon-talkiepi"

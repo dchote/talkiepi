@@ -1,0 +1,94 @@
+# talkiepi configuration
+# Docs: https://github.com/dchote/talkiepi
+
+server:
+  address: ""
+  port: 64738
+  username: ""
+  password: ""
+  channel: Root
+  insecure_tls: true
+  crypto: legacy
+
+audio:
+  input:
+    backend: ""
+    device_id: ""
+    device_name: ""
+    sample_rate: 48000
+    channels: 1
+    channel_map: [0]
+    period_frames: 960
+    periods: 3
+    exclusive: false
+    gain_db: 0.0
+  output:
+    backend: ""
+    device_id: ""
+    device_name: ""
+    sample_rate: 48000
+    channels: 1
+    channel_map: [0]
+    period_frames: 960
+    periods: 3
+    exclusive: false
+    volume: 65
+  processing:
+    backend: speex
+    duplex_mode: auto
+    echo_cancel: true
+    echo_tail_ms: 150
+    echo_delay_ms: 0
+    adaptive_delay: true
+    noise_suppress: true
+    ns_level: moderate
+    agc: false
+    agc_target_dbfs: -18
+    dereverb: false
+    high_pass: true
+
+voice:
+  mode: always_on
+  sample_rate: 48000
+  bitrate: 40000
+  frame_ms: 20
+  complexity: 5
+
+triggers:
+  gpio_chip: ""
+  gpio_line: 0
+  active_low: true
+  keyboard_key: ""
+  mqtt_topic: ""
+
+leds:
+  enabled: false
+  chip: gpiochip0
+  online_line: 18
+  participants_line: 23
+  transmit_line: 24
+
+web:
+  host: 0.0.0.0
+  port: 8080
+
+mqtt:
+  enabled: false
+  broker: ""
+  port: 1883
+  username: ""
+  password: ""
+  client_id: talkiepi
+
+hass:
+  enabled: false
+  discovery_prefix: homeassistant
+  device_name: talkiepi
+
+updates:
+  enabled: true
+  interval_hours: 6
+  repo: dchote/talkiepi
+
+logging:
+  level: info

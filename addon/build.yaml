@@ -1,0 +1,11 @@
+# https://developers.home-assistant.io/docs/add-ons/configuration#add-on-dockerfile
+build_from:
+  aarch64: "ghcr.io/hassio-addons/debian-base/aarch64:9.2.0"
+  amd64: "ghcr.io/hassio-addons/debian-base/amd64:9.2.0"
+labels:
+  org.opencontainers.image.title: "Home Assistant Add-on: talkiepi"
+  org.opencontainers.image.description: "Headless Mumble client with REST API and web UI."
+  org.opencontainers.image.authors: "Daniel Chote <https://github.com/dchote>"
+  org.opencontainers.image.url: "https://github.com/dchote/talkiepi"
+  org.opencontainers.image.source: "https://github.com/dchote/talkiepi"
+  org.opencontainers.image.licenses: "MIT"

@@ -1,0 +1,19 @@
+[Unit]
+Description=talkiepi Mumble client
+Documentation=https://github.com/dchote/talkiepi
+After=network-online.target sound.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=talkiepi
+Group=talkiepi
+EnvironmentFile=-/etc/default/talkiepi
+ExecStart=/usr/bin/talkiepi -config ${TALKIEPI_CONFIG:-/etc/talkiepi/talkiepi.yaml} $TALKIEPI_ARGS
+Restart=always
+RestartSec=3
+AmbientCapabilities=
+SupplementaryGroups=audio gpio
+
+[Install]
+WantedBy=multi-user.target

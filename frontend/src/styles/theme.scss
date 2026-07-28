@@ -1,0 +1,107 @@
+// talkiepi management UI theme
+// Color palette: Material Design 3
+
+:root {
+  --brand-primary: #1976D2;
+  --brand-background: #f5f5f5;
+  --brand-500: #1976D2;
+  --brand-600: #1565C0;
+  --brand-700: #0D47A1;
+  --brand-800: #0D47A1;
+  --brand-900: #0D47A1;
+  --brand-header-start: #1976D2;
+  --brand-header-mid: #1565C0;
+  --brand-header-end: #2196F3;
+  --brand-border: rgba(25, 118, 210, 0.24);
+}
+
+.v-theme--dark {
+  --brand-border: rgba(66, 165, 245, 0.24);
+  --brand-background: #121212;
+  --brand-header-gradient-dark: linear-gradient(135deg, #0D47A1 0%, #1565C0 50%, #1976D2 100%);
+}
+
+.v-card {
+  border-radius: 4px !important;
+}
+
+.v-divider {
+  border-color: rgba(var(--v-theme-on-surface), 0.24) !important;
+  border-width: 1px !important;
+}
+
+.v-theme--dark .v-divider {
+  border-color: rgba(var(--v-theme-on-surface), 0.2) !important;
+}
+
+.card-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.standard-page-card,
+.standard-card {
+  border-radius: 0 !important;
+  transition: all 0.2s ease;
+  border: 1px solid var(--brand-border);
+  border-top: 3px solid var(--brand-500);
+  position: relative;
+  overflow: hidden;
+}
+
+.standard-page-card .v-card-title,
+.standard-card .v-card-title,
+.standard-card-title {
+  color: #fff;
+  font-weight: 600;
+  display: flex !important;
+  align-items: center !important;
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+
+.standard-page-card .v-card-title > .header-truncate,
+.standard-card .v-card-title > .header-truncate {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.standard-page-card > .v-card-title,
+.standard-card > .v-card-title {
+  background: linear-gradient(135deg, var(--brand-header-start) 0%, var(--brand-header-mid) 50%, var(--brand-header-end) 100%);
+}
+
+.standard-card-toolbar {
+  background: linear-gradient(180deg, rgba(var(--v-theme-on-surface), 0.04) 0%, rgba(var(--v-theme-on-surface), 0.02) 100%);
+  border-radius: 0;
+}
+
+.v-theme--dark .standard-card-toolbar {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.02) 100%);
+}
+
+.v-theme--dark .standard-page-card,
+.v-theme--dark .standard-card {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.v-theme--dark .standard-page-card .v-card-title,
+.v-theme--dark .standard-card .v-card-title {
+  color: rgb(var(--v-theme-on-surface));
+}
+
+.v-theme--dark .standard-page-card > .v-card-title,
+.v-theme--dark .standard-card > .v-card-title {
+  background: var(--brand-header-gradient-dark);
+}
+
+.brand-section-card {
+  border: 1px solid var(--brand-border);
+  border-radius: 4px;
+}
+
+.v-theme--dark .brand-section-card {
+  border-color: rgba(255, 255, 255, 0.12);
+}

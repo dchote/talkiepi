@@ -1,0 +1,58 @@
+configuration:
+  server:
+    name: Server
+    description: Mumble server hostname or IP. Leave empty to auto-detect (e.g. go-mumble-server add-on or Home Assistant host).
+  port:
+    name: Port
+    description: Mumble server port (default 64738).
+  username:
+    name: Username
+    description: Mumble username. Leave empty for an auto-generated talkiepi name.
+  password:
+    name: Password
+    description: Mumble server password (optional).
+  channel:
+    name: Channel
+    description: Channel to join after connect (default Root).
+  mode:
+    name: Voice mode
+    description: always_on, push_to_talk, or communicator.
+  crypto:
+    name: Crypto mode
+    description: legacy (OCB2) or lite (AES-GCM).
+  speaker_volume:
+    name: Speaker volume
+    description: Output volume (0–100).
+  mic_gain_db:
+    name: Mic gain (dB)
+    description: Capture gain in decibels (-20 to 20).
+  audio_input:
+    name: Audio input
+    description: Capture device name (empty = system default).
+  audio_output:
+    name: Audio output
+    description: Playback device name (empty = system default).
+  echo_cancel:
+    name: Echo cancellation
+    description: Enable acoustic echo cancellation.
+  noise_suppress:
+    name: Noise suppression
+    description: Enable noise suppression.
+  ptt_gpio_chip:
+    name: PTT GPIO chip
+    description: GPIO chip path for push-to-talk (empty = disabled).
+  ptt_gpio_line:
+    name: PTT GPIO line
+    description: GPIO line number for push-to-talk.
+  ptt_active_low:
+    name: PTT active low
+    description: Treat PTT GPIO as active-low.
+  web_port:
+    name: Web port
+    description: REST API and web UI port (used by ingress; normally leave at 8080).
+  log_level:
+    name: Log level
+    description: Logging level (debug, info, warn, error).
+  force_options:
+    name: Force options
+    description: When enabled, add-on options overwrite /data/talkiepi.yaml on every start.

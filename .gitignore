@@ -1,0 +1,54 @@
+# Build output
+build/
+/talkiepi
+dist/
+dist-amd64/
+dist-arm64/
+
+# Go
+*.exe
+*.test
+*.out
+*.prof
+
+# Dependencies
+vendor/
+node_modules/
+
+# Frontend build artifacts
+frontend/dist/
+cmd/talkiepi/frontend-dist/
+
+# Data
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+*.db
+
+# Keys and secrets
+*.pem
+*.key
+*.crt
+!configs/*.example.*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Debug
+__debug_bin*
+*.log
+
+# Research (reference implementations, not part of the project)
+research/
+
+# Cursor
+.cursor/

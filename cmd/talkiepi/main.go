@@ -1,73 +1,168 @@
 package main
 
 import (
-	"crypto/rand"
-	"crypto/tls"
+	"context"
 	"flag"
 	"fmt"
-	"github.com/dchote/gumble/gumble"
-	_ "github.com/dchote/gumble/opus"
-	"github.com/dchote/talkiepi"
+	"io/fs"
+	"log/slog"
+	"net"
+	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
+	"time"
+
+	"github.com/dchote/talkiepi/internal/audio"
+	"github.com/dchote/talkiepi/internal/config"
+	"github.com/dchote/talkiepi/internal/controller"
+	"github.com/dchote/talkiepi/internal/led"
+	"github.com/dchote/talkiepi/internal/rest"
+	"github.com/dchote/talkiepi/internal/update"
+)
+
+var (
+	version   = "dev"
+	commit    = "unknown"
+	buildTime = "unknown"
 )
 
 func main() {
-	// Command line flags
-	server := flag.String("server", "talkiepi.projectable.me:64738", "the server to connect to")
-	username := flag.String("username", "", "the username of the client")
-	password := flag.String("password", "", "the password of the server")
-	insecure := flag.Bool("insecure", true, "skip server certificate verification")
-	certificate := flag.String("certificate", "", "PEM encoded certificate and private key")
-	channel := flag.String("channel", "talkiepi", "mumble channel to join by default")
-
+	configPath := flag.String("config", defaultConfigPath(), "path to talkiepi.yaml")
+	showVersion := flag.Bool("version", false, "print version and exit")
+	frontendEmbed := flag.Bool("frontend-embed", true, "serve embedded frontend when built with embed_frontend")
 	flag.Parse()
 
-	// Initialize
-	b := talkiepi.Talkiepi{
-		Config:      gumble.NewConfig(),
-		Address:     *server,
-		ChannelName: *channel,
+	if *showVersion {
+		fmt.Printf("talkiepi %s (commit %s, built %s)\n", version, commit, buildTime)
+		os.Exit(0)
 	}
 
-	// if no username specified, lets just autogen a random one
-	if len(*username) == 0 {
-		buf := make([]byte, 6)
-		_, err := rand.Read(buf)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s\n", err)
-			os.Exit(1)
+	cfg, err := config.Load(*configPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "config: %v\n", err)
+		os.Exit(1)
+	}
+
+	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: parseLevel(cfg.Logging.Level)}))
+	slog.SetDefault(log)
+
+	stateDir := filepath.Join(filepath.Dir(*configPath), "..")
+	if filepath.Base(filepath.Dir(*configPath)) == "talkiepi" {
+		stateDir = "/var/lib/talkiepi"
+	}
+	if d := os.Getenv("TALKIEPI_STATE_DIR"); d != "" {
+		stateDir = d
+	}
+	_ = os.MkdirAll(stateDir, 0o750)
+
+	var updater *update.Checker
+	if cfg.Updates.Enabled {
+		owner, repo := "dchote", "talkiepi"
+		if cfg.Updates.Repo != "" {
+			parts := splitRepo(cfg.Updates.Repo)
+			owner, repo = parts[0], parts[1]
 		}
-
-		buf[0] |= 2
-		b.Config.Username = fmt.Sprintf("talkiepi-%02x%02x%02x%02x%02x%02x", buf[0], buf[1], buf[2], buf[3], buf[4], buf[5])
-	} else {
-		b.Config.Username = *username
+		updater = update.NewChecker(owner, repo, version, filepath.Join(stateDir, "update-cache.json"))
 	}
 
-	b.Config.Password = *password
-
-	if *insecure {
-		b.TLSConfig.InsecureSkipVerify = true
+	leds := led.Indicator(led.NewMemory())
+	if cfg.LEDs.Enabled {
+		leds = led.NewGPIO(led.GPIOConfig{
+			Enabled:          true,
+			Chip:             cfg.LEDs.Chip,
+			OnlineLine:       cfg.LEDs.OnlineLine,
+			ParticipantsLine: cfg.LEDs.ParticipantsLine,
+			TransmitLine:     cfg.LEDs.TransmitLine,
+		})
 	}
-	if *certificate != "" {
-		cert, err := tls.LoadX509KeyPair(*certificate, *certificate)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s\n", err)
-			os.Exit(1)
+
+	ctrl := controller.New(controller.Options{
+		Config:  cfg,
+		Logger:  log,
+		Version: version,
+		LEDs:    leds,
+		Updater: updater,
+	})
+
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer cancel()
+
+	if err := ctrl.Start(ctx); err != nil {
+		log.Error("controller start", "err", err)
+		os.Exit(1)
+	}
+	defer ctrl.Stop()
+
+	var frontend fs.FS
+	if *frontendEmbed {
+		frontend, _ = getFrontendFS()
+	}
+	handler := rest.NewRouter(rest.Options{
+		Controller: ctrl,
+		Frontend:   frontend,
+		Version:    version,
+		Enumerator: audio.NewMalgoEnumerator(),
+	})
+
+	addr := net.JoinHostPort(cfg.Web.Host, fmt.Sprintf("%d", cfg.Web.Port))
+	srv := &http.Server{Addr: addr, Handler: handler, ReadHeaderTimeout: 10 * time.Second}
+	go func() {
+		log.Info("listening", "addr", addr, "version", version)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Error("http", "err", err)
+			cancel()
 		}
-		b.TLSConfig.Certificates = append(b.TLSConfig.Certificates, cert)
+	}()
+
+	if updater != nil {
+		go func() {
+			ticker := time.NewTicker(time.Duration(cfg.Updates.IntervalHours) * time.Hour)
+			defer ticker.Stop()
+			_, _ = updater.Check(ctx)
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case <-ticker.C:
+					_, _ = updater.Check(ctx)
+				}
+			}
+		}()
 	}
 
-	b.Init()
+	<-ctx.Done()
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer shutdownCancel()
+	_ = srv.Shutdown(shutdownCtx)
+}
 
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-	exitStatus := 0
+func defaultConfigPath() string {
+	if v := os.Getenv("TALKIEPI_CONFIG"); v != "" {
+		return v
+	}
+	return "configs/talkiepi.yaml"
+}
 
-	<-sigs
-	b.CleanUp()
+func parseLevel(s string) slog.Level {
+	switch s {
+	case "debug":
+		return slog.LevelDebug
+	case "warn":
+		return slog.LevelWarn
+	case "error":
+		return slog.LevelError
+	default:
+		return slog.LevelInfo
+	}
+}
 
-	os.Exit(exitStatus)
+func splitRepo(repo string) [2]string {
+	for i := 0; i < len(repo); i++ {
+		if repo[i] == '/' {
+			return [2]string{repo[:i], repo[i+1:]}
+		}
+	}
+	return [2]string{"dchote", repo}
 }
