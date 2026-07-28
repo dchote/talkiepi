@@ -27,7 +27,7 @@ RUN go mod download
 COPY . .
 COPY --from=frontend /app/frontend/dist ./cmd/talkiepi/frontend-dist
 
-RUN go build -ldflags "-s -w" -tags embed_frontend -o talkiepi ./cmd/talkiepi
+RUN go build -ldflags "-s -w" -tags opus,speexdsp,nolibopusfile,embed_frontend -o talkiepi ./cmd/talkiepi
 
 FROM ${BUILD_FROM}
 

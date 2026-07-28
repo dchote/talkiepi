@@ -1,4 +1,6 @@
 # talkiepi Makefile
+# Requires: Docker, Node 20+ and yarn (for frontend), Homebrew opus/speexdsp/pkg-config on macOS.
+
 REPO_SLUG ?= dchote/talkiepi
 GORELEASER_IMAGE ?= ghcr.io/goreleaser/goreleaser-cross:v1.25.9
 
@@ -43,7 +45,10 @@ run:
 	@# talkiepi handles Ctrl+C and exits 0 after graceful shutdown.
 	@bash -c 'trap "" INT; ./bin/talkiepi -config configs/talkiepi.yaml -frontend-embed=false -frontend-dir=frontend/dist; exit $$?'
 
+# Build .deb packages locally via Docker (same as CI). Works on macOS and Linux.
+# Produces dist/*.deb (amd64 and arm64). Requires Docker.
 build-deb: frontend
 	SKIP_FRONTEND=1 ./scripts/build-deb.sh
 
+# Alias for build-deb (same behavior).
 release-snapshot: build-deb

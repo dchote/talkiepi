@@ -81,14 +81,11 @@ jobs:
           cp -r dist-arm64/* dist/
           rm -rf dist-amd64 dist-arm64
 
-      - name: Prepare release binaries (named by arch)
+      - name: Prepare release assets (named by arch)
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         run: |
-          # Goreleaser binary paths vary slightly by arch template; pick known layouts.
-          AMD64=$(find dist -type f -path '*amd64*' -name talkiepi | head -1)
-          ARM64=$(find dist -type f -path '*arm64*' -name talkiepi | head -1)
-          test -n "$AMD64" && cp "$AMD64" dist/talkiepi_linux_amd64
-          test -n "$ARM64" && cp "$ARM64" dist/talkiepi_linux_arm64
+          cp dist/talkiepi_linux_amd64_v1/talkiepi dist/talkiepi_linux_amd64
+          cp dist/talkiepi_linux_arm64_v8.0/talkiepi dist/talkiepi_linux_arm64
 
       - name: Create release and upload artifacts
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')

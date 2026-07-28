@@ -78,7 +78,7 @@ make build
 
 **Never** pass `-tags embed_frontend` if `frontend-dist` is missing or empty—`//go:embed` will fail.
 
-CI runs `yarn build` to verify the frontend compiles; unit tests do **not** require an embedded frontend.
+CI (workflow_dispatch, same shape as go-mumble-server) builds the frontend into `cmd/talkiepi/frontend-dist`, runs `make check`, then builds with `-tags opus,speexdsp,nolibopusfile,embed_frontend`.
 
 ## Debian packages via Docker (including macOS)
 
