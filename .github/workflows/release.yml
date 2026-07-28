@@ -55,7 +55,7 @@ jobs:
             -e CGO_ENABLED=1 \
             -e GORELEASER_CURRENT_TAG="${{ steps.vars.outputs.tag }}" \
             ghcr.io/goreleaser/goreleaser-cross:v1.25.9 \
-            -c "apt-get update && apt-get install -y pkg-config libopus-dev libspeexdsp-dev && goreleaser ${{ steps.vars.outputs.args }} -f .goreleaser-amd64.yaml"
+            -c "git config --global --add safe.directory '*' && apt-get update && apt-get install -y pkg-config libopus-dev libspeexdsp-dev && goreleaser ${{ steps.vars.outputs.args }} -f .goreleaser-amd64.yaml"
           mv dist dist-amd64
 
       - name: Build linux/arm64 (goreleaser-cross)
@@ -68,7 +68,7 @@ jobs:
             -e CGO_ENABLED=1 \
             -e GORELEASER_CURRENT_TAG="${{ steps.vars.outputs.tag }}" \
             ghcr.io/goreleaser/goreleaser-cross:v1.25.9 \
-            -c "apt-get update && apt-get install -y pkg-config libopus-dev libspeexdsp-dev && goreleaser ${{ steps.vars.outputs.args }} -f .goreleaser-arm64.yaml"
+            -c "git config --global --add safe.directory '*' && apt-get update && apt-get install -y pkg-config libopus-dev libspeexdsp-dev && goreleaser ${{ steps.vars.outputs.args }} -f .goreleaser-arm64.yaml"
           mv dist dist-arm64
 
       - name: Fix ownership of build artifacts

@@ -43,7 +43,7 @@ run_goreleaser() {
     -e CGO_ENABLED=1 \
     -e GORELEASER_CURRENT_TAG=v0.0.0-snapshot \
     "$GORELEASER_IMAGE" \
-    -c "apt-get update && apt-get install -y pkg-config libopus-dev libspeexdsp-dev && goreleaser release --snapshot --skip=publish --clean --parallelism 1 -f ${config}"
+    -c "git config --global --add safe.directory '*' && apt-get update && apt-get install -y pkg-config libopus-dev libspeexdsp-dev && goreleaser release --snapshot --skip=publish --clean --parallelism 1 -f ${config}"
 }
 
 echo "Building .deb for linux/amd64..."
